@@ -3,7 +3,7 @@
 Terminal UI for SimpleX Chat - Built for Cyberdecks
 
 ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)
 
 ## Features
 

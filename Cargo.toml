@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["cannatoshi"]
 description = "Cyberpunk Terminal UI for SimpleX Chat - Built for Cyberdecks"
 repository = "https://github.com/cannatoshi/simplex-tui"
-license = "MIT"
+license = "AGPL-3.0"
 keywords = ["simplex", "chat", "tui", "cyberdeck", "privacy"]
 
 [dependencies]
