@@ -1,0 +1,18 @@
+<<< RECEIVED: contactsList
+>>> SENDING: /sa
+<<< RECEIVED: userContactLink
+>>> GOT userContactLink!
+>>> LINK FOUND: https://smp6.simplex.im/a#iXjJq2PX6ua-vIpxQT2Xrrre
+>>> SENDING: /da
+<<< RECEIVED: userContactLinkDeleted
+>>> SENDING: /ad
+<<< RECEIVED: userContactLinkCreated
+>>> GOT userContactLinkCreated!
+<<< RECEIVED: agentRcvQueuesDeleted
+>>> UNHANDLED: agentRcvQueuesDeleted
+<<< RECEIVED: agentConnsDeleted
+>>> UNHANDLED: agentConnsDeleted
+>>> SENDING: /sa
+<<< RECEIVED: userContactLink
+>>> GOT userContactLink!
+>>> LINK FOUND: https://smp5.simplex.im/a#SvR6_U8H3YylY05jXaBoywx4
