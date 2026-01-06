@@ -1,39 +1,27 @@
 [package]
 name = "simplex-tui"
-version = "0.1.0"
+version = "0.1.1-alpha"
 edition = "2021"
 authors = ["cannatoshi"]
-description = "Cyberpunk Terminal UI for SimpleX Chat - Built for Cyberdecks"
-repository = "https://github.com/cannatoshi/simplex-tui"
+description = "Secure terminal messenger for SimpleX Chat"
 license = "AGPL-3.0"
-keywords = ["simplex", "chat", "tui", "cyberdeck", "privacy"]
+repository = "https://github.com/cannatoshi/simplex-tui"
+keywords = ["simplex", "chat", "tui", "terminal", "messenger"]
+categories = ["command-line-utilities"]
 
 [dependencies]
-# TUI Framework
 ratatui = "0.29"
 crossterm = "0.28"
-
-# Async Runtime
-tokio = { version = "1.42", features = ["full"] }
-tokio-tungstenite = "0.24"
+tokio = { version = "1.43", features = ["rt-multi-thread", "macros", "time", "sync"] }
+tokio-tungstenite = "0.26"
 futures-util = "0.3"
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-# Utilities
-chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "1.11", features = ["v4"] }
-unicode-width = "0.2"
-
-# Error Handling
-anyhow = "1.0"
-thiserror = "2.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = "0.4"
+anyhow = "1"
 
 [profile.release]
-opt-level = "z"
+opt-level = 3
 lto = true
 codegen-units = 1
-panic = "abort"
 strip = true
