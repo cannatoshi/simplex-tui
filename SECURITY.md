@@ -70,11 +70,13 @@ Please provide as much information as possible:
 - Build and deployment scripts
 - Documentation that could lead to security issues
 - Dependencies with known vulnerabilities
+- Radio transport protocol implementation (v0.5.0+)
 
 ### Out of Scope
 
 - SimpleX Chat CLI (report to [simplex-chat](https://github.com/simplex-chat/simplex-chat/security))
 - SimpleX protocol issues
+- Reticulum Network Stack (report to [Reticulum](https://github.com/markqvist/Reticulum))
 - Social engineering attacks
 - Physical attacks
 - Issues in user's environment
@@ -130,7 +132,7 @@ cargo build --release
 
 ## Known Security Considerations
 
-### Architecture
+### Architecture (Current - v0.1.x)
 ```
 ┌─────────────────┐     WebSocket      ┌─────────────────┐
 │  SimpleX TUI    │◄──────────────────►│  SimpleX CLI    │
@@ -147,6 +149,124 @@ cargo build --release
 3. **No Key Storage**: SimpleX TUI does NOT store or access private keys.
 
 4. **Trust Model**: Security depends on SimpleX Chat CLI. We are a frontend only.
+
+---
+
+## Radio Transport Security (Planned - v0.5.0+)
+
+The planned radio transport layer will implement its own cryptographic stack for off-grid communication. This section documents the security model.
+
+### Cryptographic Primitives
+
+| Layer | Method | Purpose |
+|-------|--------|---------|
+| **Key Exchange** | X25519 ECDH | Establish shared secret |
+| **Encryption** | ChaCha20-Poly1305 | Authenticated encryption |
+| **Signatures** | Ed25519 | Message authentication |
+| **Key Derivation** | HKDF-SHA256 | Derive session keys |
+| **Forward Secrecy** | Ephemeral session keys | Protect past communications |
+
+### Protocol Modes
+
+#### Custom Protocol (Closed Groups)
+
+- Direct implementation of cryptographic primitives in Rust
+- Designed for isolated networks without mesh interoperability
+- Full control over protocol behavior
+- Audits and review welcome
+
+#### Reticulum Mode (Mesh Interoperability)
+
+- Uses Reticulum Network Stack encryption
+- Curve25519 + AES-128 or ChaCha20
+- Compatible with Nomad Network, Sideband, MeshChat
+- Security depends on Reticulum implementation
+- See: https://reticulum.network/manual/crypto.html
+
+### Threat Model Comparison
+
+| Threat | Tor Transport | Radio Transport |
+|--------|---------------|-----------------|
+| Content interception | ✅ Protected | ✅ Protected |
+| Metadata analysis | ✅ Protected | ⚠️ Partial |
+| Traffic analysis | ✅ Protected | ⚠️ Partial |
+| Direction finding | ✅ Protected | ❌ Vulnerable |
+| Replay attacks | ✅ Protected | ✅ Protected |
+| Man-in-the-middle | ✅ Protected | ✅ Protected |
+| Infrastructure dependency | ⚠️ Requires internet | ✅ None |
+| Censorship resistance | ⚠️ Tor can be blocked | ✅ No central point |
+
+### Radio-Specific Security Considerations
+
+1. **Direction Finding**: Unlike Tor, radio transmissions can be located using direction-finding equipment. Users in sensitive situations should be aware of this limitation.
+
+2. **Signal Analysis**: Even with encrypted content, transmission patterns (timing, frequency, duration) may reveal information about communication activity.
+
+3. **Physical Security**: Radio hardware can be seized or tampered with. Consider physical security of your device.
+
+4. **Regulatory Compliance**: Transmitting on certain frequencies may be illegal in your jurisdiction. Non-compliance could lead to legal consequences and confiscation of equipment.
+
+5. **Shared Spectrum**: ISM bands are shared with other users. Interference is possible and your transmissions may be noticed.
+
+### Key Management (Radio Transport)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Identity Key (Long-term)                                       │
+│  ├── Generated once per installation                            │
+│  ├── Ed25519 keypair                                            │
+│  └── Used for signing and identity verification                 │
+├─────────────────────────────────────────────────────────────────┤
+│  Session Key (Ephemeral)                                        │
+│  ├── Generated per conversation session                         │
+│  ├── X25519 ECDH exchange                                       │
+│  └── Provides forward secrecy                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  Message Key (Per-message)                                      │
+│  ├── Derived from session key via HKDF                          │
+│  ├── Unique per message                                         │
+│  └── ChaCha20-Poly1305 authenticated encryption                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Security Recommendations for Radio Users
+
+1. **Use Tor as Primary**: Radio should be a fallback, not primary transport. Tor provides better metadata protection.
+
+2. **Limit Transmission Time**: Shorter transmissions are harder to locate.
+
+3. **Vary Location**: If possible, don't always transmit from the same location.
+
+4. **Verify Contacts**: Use out-of-band verification for contact identity keys.
+
+5. **Monitor Spectrum**: Use RTL-SDR monitoring to be aware of your RF environment.
+
+6. **Secure Hardware**: Keep your radio hardware physically secure.
+
+---
+
+## Cryptographic Implementation Notes
+
+### Dependencies (Planned v0.5.0+)
+
+| Crate | Version | Audit Status |
+|-------|---------|--------------|
+| x25519-dalek | 2.x | ✅ Audited |
+| chacha20poly1305 | 0.10.x | ✅ RustCrypto |
+| ed25519-dalek | 2.x | ✅ Audited |
+| hkdf | 0.12.x | ✅ RustCrypto |
+| rand | 0.8.x | ✅ Audited |
+
+### Implementation Principles
+
+1. **No Custom Cryptography**: We use well-established, audited cryptographic libraries.
+
+2. **Fail Secure**: On any cryptographic error, the operation fails rather than falling back to insecure mode.
+
+3. **Constant Time**: Cryptographic operations use constant-time implementations where available.
+
+4. **Secure Random**: All random values are generated using cryptographically secure random number generators.
+
+5. **Memory Safety**: Rust's memory safety guarantees help prevent common vulnerabilities.
 
 ---
 
