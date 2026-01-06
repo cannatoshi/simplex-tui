@@ -3,7 +3,7 @@
 ## Terminal-Based Chat Client for SimpleX Messaging Protocol
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+![Rust](https://img.shields.io/badge/Rust-1.92+-orange?logo=rust)
 [![SimpleX](https://img.shields.io/badge/SimpleX-Compatible-7D4698.svg)](https://simplex.chat/)
 [![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)](#status)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS-lightgrey.svg)](#installation)
@@ -173,7 +173,7 @@ cargo build --release
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| **Rust** | 1.75+ | With cargo |
+| **Rust** | 1.92+ | With cargo |
 | **SimpleX CLI** | Latest | Running with WebSocket enabled |
 | **Terminal** | Any | 256-color support recommended |
 
@@ -330,7 +330,7 @@ simplex-tui/
 
 | Component | Technology |
 |-----------|------------|
-| **Language** | Rust 1.75+ |
+| **Language** | Rust 1.92+ |
 | **TUI Framework** | ratatui 0.29 |
 | **Terminal Backend** | crossterm |
 | **Async Runtime** | tokio |
