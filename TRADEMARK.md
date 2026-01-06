@@ -8,6 +8,14 @@
 
 **"SimpleX"**, **"SimpleX Chat"**, and the SimpleX logo are trademarks or registered trademarks of **SimpleX Chat Ltd** (United Kingdom).
 
+**"Reticulum"** is a project by Mark Qvist. The Reticulum name and associated marks are used with reference to the open-source project.
+
+**"Meshtastic"** is a trademark of Meshtastic LLC.
+
+**"HackRF"** is a trademark of Great Scott Gadgets.
+
+**"Raspberry Pi"** is a trademark of Raspberry Pi Ltd.
+
 ### No Affiliation
 
 This project, **SimpleX TUI**, is:
@@ -15,15 +23,20 @@ This project, **SimpleX TUI**, is:
 - ❌ **NOT** affiliated with SimpleX Chat Ltd
 - ❌ **NOT** endorsed by SimpleX Chat Ltd
 - ❌ **NOT** sponsored by SimpleX Chat Ltd
+- ❌ **NOT** affiliated with the Reticulum project
+- ❌ **NOT** affiliated with Meshtastic LLC
+- ❌ **NOT** affiliated with Great Scott Gadgets
+- ❌ **NOT** affiliated with Raspberry Pi Ltd
 - ✅ An **independent, community-driven** open-source project
 
-### Our Use of the SimpleX Name
+### Our Use of Third-Party Names
 
-We use the name "SimpleX" in our project name **"SimpleX TUI"** solely to:
+We use third-party names in our project and documentation solely to:
 
-1. **Accurately describe** what our software does (a Terminal User Interface for SimpleX Chat)
-2. **Indicate compatibility** with the SimpleX Chat ecosystem
-3. **Help users find** software that works with SimpleX
+1. **Accurately describe** what our software does and what it is compatible with
+2. **Indicate compatibility** with third-party ecosystems
+3. **Help users find** software that works with their existing tools
+4. **Reference** open-source projects we integrate with
 
 This constitutes **nominative fair use** under trademark law.
 
@@ -37,13 +50,15 @@ Our use of third-party trademarks is protected under:
 
 ### What We Do NOT Do
 
-- ❌ Use SimpleX logos or brand assets
+- ❌ Use third-party logos or brand assets
 - ❌ Claim official status or endorsement
-- ❌ Suggest SimpleX Chat Ltd created this software
-- ❌ Use SimpleX trademarks in domain names
-- ❌ Register trademarks containing "SimpleX"
+- ❌ Suggest third parties created this software
+- ❌ Use third-party trademarks in domain names
+- ❌ Register trademarks containing third-party marks
 
 ### Attribution
+
+#### SimpleX Chat
 
 SimpleX Chat is developed by **SimpleX Chat Ltd**:
 
@@ -53,6 +68,25 @@ SimpleX Chat is developed by **SimpleX Chat Ltd**:
 
 We are grateful to the SimpleX team for creating excellent privacy-focused messaging software.
 
+#### Reticulum Network Stack
+
+Reticulum is developed by **Mark Qvist**:
+
+- Website: https://reticulum.network
+- Source Code: https://github.com/markqvist/Reticulum
+- License: MIT
+
+We are grateful to Mark Qvist for creating the Reticulum cryptographic networking stack.
+
+#### Other Projects
+
+We acknowledge and thank all open-source projects that make SimpleX TUI possible, including but not limited to:
+
+- The Rust programming language and ecosystem
+- The ratatui TUI framework
+- The tokio async runtime
+- The RustCrypto project
+
 ### Contact
 
 For trademark concerns regarding this project:
@@ -60,6 +94,9 @@ For trademark concerns regarding this project:
 
 For SimpleX trademark inquiries:
 chat@simplex.chat
+
+For Reticulum inquiries:
+https://github.com/markqvist/Reticulum
 
 ---
 
@@ -69,6 +106,14 @@ chat@simplex.chat
 
 **"SimpleX"**, **"SimpleX Chat"** und das SimpleX-Logo sind Marken oder eingetragene Marken der **SimpleX Chat Ltd** (Vereinigtes Koenigreich).
 
+**"Reticulum"** ist ein Projekt von Mark Qvist. Der Name Reticulum und zugehoerige Kennzeichen werden mit Bezug auf das Open-Source-Projekt verwendet.
+
+**"Meshtastic"** ist eine Marke der Meshtastic LLC.
+
+**"HackRF"** ist eine Marke von Great Scott Gadgets.
+
+**"Raspberry Pi"** ist eine Marke der Raspberry Pi Ltd.
+
 ### Keine Verbindung
 
 Dieses Projekt, **SimpleX TUI**, ist:
@@ -76,15 +121,20 @@ Dieses Projekt, **SimpleX TUI**, ist:
 - ❌ **NICHT** mit SimpleX Chat Ltd verbunden
 - ❌ **NICHT** von SimpleX Chat Ltd unterstuetzt
 - ❌ **NICHT** von SimpleX Chat Ltd gesponsert
+- ❌ **NICHT** mit dem Reticulum-Projekt verbunden
+- ❌ **NICHT** mit Meshtastic LLC verbunden
+- ❌ **NICHT** mit Great Scott Gadgets verbunden
+- ❌ **NICHT** mit Raspberry Pi Ltd verbunden
 - ✅ Ein **unabhaengiges, gemeinschaftlich entwickeltes** Open-Source-Projekt
 
-### Unsere Verwendung des SimpleX-Namens
+### Unsere Verwendung von Drittanbieter-Namen
 
-Wir verwenden den Namen "SimpleX" in unserem Projektnamen **"SimpleX TUI"** ausschliesslich um:
+Wir verwenden Drittanbieter-Namen in unserem Projekt und unserer Dokumentation ausschliesslich um:
 
-1. **Genau zu beschreiben**, was unsere Software tut (eine Terminal-Oberflaeche fuer SimpleX Chat)
-2. **Kompatibilitaet anzuzeigen** mit dem SimpleX-Oekosystem
-3. **Nutzern zu helfen**, Software zu finden, die mit SimpleX funktioniert
+1. **Genau zu beschreiben**, was unsere Software tut und womit sie kompatibel ist
+2. **Kompatibilitaet anzuzeigen** mit Drittanbieter-Oekosystemen
+3. **Nutzern zu helfen**, Software zu finden, die mit ihren bestehenden Tools funktioniert
+4. **Zu referenzieren** auf Open-Source-Projekte, mit denen wir integrieren
 
 Dies stellt eine **zulaessige beschreibende Benutzung** nach Markenrecht dar.
 
@@ -98,13 +148,15 @@ Unsere Verwendung von Drittmarken ist geschuetzt durch:
 
 ### Was wir NICHT tun
 
-- ❌ SimpleX-Logos oder Markenzeichen verwenden
+- ❌ Drittanbieter-Logos oder Markenzeichen verwenden
 - ❌ Offiziellen Status oder Unterstuetzung behaupten
-- ❌ Suggerieren, dass SimpleX Chat Ltd diese Software erstellt hat
-- ❌ SimpleX-Marken in Domainnamen verwenden
-- ❌ Marken registrieren, die "SimpleX" enthalten
+- ❌ Suggerieren, dass Dritte diese Software erstellt haben
+- ❌ Drittanbieter-Marken in Domainnamen verwenden
+- ❌ Marken registrieren, die Drittanbieter-Kennzeichen enthalten
 
 ### Anerkennung
+
+#### SimpleX Chat
 
 SimpleX Chat wird entwickelt von **SimpleX Chat Ltd**:
 
@@ -114,6 +166,25 @@ SimpleX Chat wird entwickelt von **SimpleX Chat Ltd**:
 
 Wir sind dem SimpleX-Team dankbar fuer die Entwicklung exzellenter datenschutzorientierter Messaging-Software.
 
+#### Reticulum Network Stack
+
+Reticulum wird entwickelt von **Mark Qvist**:
+
+- Website: https://reticulum.network
+- Quellcode: https://github.com/markqvist/Reticulum
+- Lizenz: MIT
+
+Wir sind Mark Qvist dankbar fuer die Entwicklung des kryptographischen Reticulum-Netzwerk-Stacks.
+
+#### Andere Projekte
+
+Wir danken allen Open-Source-Projekten, die SimpleX TUI ermoglichen, einschliesslich aber nicht beschraenkt auf:
+
+- Die Rust-Programmiersprache und ihr Oekosystem
+- Das ratatui TUI-Framework
+- Die tokio Async-Runtime
+- Das RustCrypto-Projekt
+
 ### Kontakt
 
 Fuer markenrechtliche Fragen zu diesem Projekt:
@@ -121,6 +192,9 @@ Fuer markenrechtliche Fragen zu diesem Projekt:
 
 Fuer SimpleX-Markenanfragen:
 chat@simplex.chat
+
+Fuer Reticulum-Anfragen:
+https://github.com/markqvist/Reticulum
 
 ---
 
