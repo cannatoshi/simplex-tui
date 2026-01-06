@@ -1,0 +1,14 @@
+# GitHub Funding Configuration
+# This file enables the "Sponsor" button on the repository
+#
+# Project: SimpleX TUI
+# Maintainer: cannatoshi (Sascha Dämgen IT and More Systems)
+
+# GitHub Sponsors
+github: cannatoshi
+
+# Ko-fi
+ko_fi: cannatoshi
+
+# Crypto donations - see DONATION-POLICY.md for wallet addresses
+# BTC and ETH accepted | Monero rejected (EU regulation 2024/1624)

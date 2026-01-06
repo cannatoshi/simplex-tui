@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/cannatoshi/simplex-tui/security/advisories/new
+    about: Report security issues privately (DO NOT use public issues!)
+  - name: 💬 Questions & Help
+    url: https://github.com/cannatoshi/simplex-tui/discussions
+    about: Ask questions in Discussions, not Issues
