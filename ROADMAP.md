@@ -14,6 +14,7 @@ SimpleX TUI aims to be the best terminal interface for SimpleX Chat, providing:
 - 🔒 Privacy-focused design
 - 🎨 Beautiful terminal aesthetics
 - ♿ Accessible to all users
+- 📡 Resilient communication with optional radio transport
 
 ---
 
@@ -69,7 +70,7 @@ SimpleX TUI aims to be the best terminal interface for SimpleX Chat, providing:
 
 ---
 
-### Q3 2026: Customization
+### Q3 2026: Customization & Plugin Architecture
 
 #### v0.4.0 - Theming & Configuration
 **Target:** July 2026
@@ -80,7 +81,7 @@ SimpleX TUI aims to be the best terminal interface for SimpleX Chat, providing:
 - [ ] 🔤 Font/Unicode options
 - [ ] 🌍 Internationalization (i18n) foundation
 
-#### v0.4.x - Search & Navigation
+#### v0.4.x - Search, Navigation & Plugins
 **Target:** August-September 2026
 
 - [ ] 🔍 Message search
@@ -88,13 +89,41 @@ SimpleX TUI aims to be the best terminal interface for SimpleX Chat, providing:
 - [ ] 🏷️ Contact tags/groups
 - [ ] ⭐ Favorite contacts
 - [ ] 📌 Pinned conversations
+- [ ] 🔌 Plugin architecture foundation
+- [ ] 🧪 Multi-instance support for parallel testing
 
 ---
 
-### Q4 2026: Stability
+### Q4 2026: Radio Transport (Experimental)
 
-#### v0.5.0 - Beta Preparation
+#### v0.5.0 - LoRa Foundation
 **Target:** October 2026
+
+- [ ] 📡 Serial interface to LoRa module
+- [ ] 🔐 Curve25519 key exchange over radio
+- [ ] 🔒 ChaCha20-Poly1305 encryption for radio transport
+- [ ] 📨 Basic encrypted message transport
+- [ ] 🔄 Automatic transport fallback (Tor → Radio)
+- [ ] 👤 Per-contact capability detection
+- [ ] 📊 Signal strength indicator
+
+#### v0.5.x - Protocol Options
+**Target:** November 2026
+
+- [ ] 🌐 Reticulum/LXMF compatibility mode
+- [ ] 🔒 Custom lightweight protocol for closed groups
+- [ ] 📊 Link quality display
+- [ ] 🗺️ GPS-aware contact distance (optional)
+- [ ] 📡 Multi-channel support
+
+---
+
+### 2027 Roadmap
+
+### Q1 2027: Stability & Release
+
+#### v0.6.0 - Beta Preparation
+**Target:** January 2027
 
 - [ ] 🧪 Comprehensive test suite
 - [ ] 📖 Complete documentation
@@ -103,7 +132,7 @@ SimpleX TUI aims to be the best terminal interface for SimpleX Chat, providing:
 - [ ] ♿ Accessibility review
 
 #### v1.0.0 - Stable Release
-**Target:** December 2026
+**Target:** March 2027
 
 - [ ] 🎉 First stable release
 - [ ] 📦 Package manager submissions
@@ -116,16 +145,44 @@ SimpleX TUI aims to be the best terminal interface for SimpleX Chat, providing:
 
 ---
 
+### Q2 2027: Advanced Radio Features (Post-Stable)
+
+#### v1.1.0 - SDR Integration (Optional)
+**Target:** May 2027
+
+- [ ] 📻 RTL-SDR spectrum monitoring integration
+- [ ] 📈 Waterfall display in TUI
+- [ ] 🔍 Signal detection alerts
+- [ ] 📡 Multi-band awareness
+- [ ] 🎯 Direction finding assistance (experimental)
+
+#### v1.2.0 - Mesh Expansion
+**Target:** July 2027
+
+- [ ] 🔁 Store-and-forward for offline contacts
+- [ ] 🌉 Bridge mode (radio ↔ internet gateway)
+- [ ] 📍 GPS-based routing optimization
+- [ ] 🗺️ Network topology visualization
+
+---
+
 ## Future Ideas (Post 1.0)
 
 These are ideas for future development, not committed:
 
-### Features
+### Core Features
 - 🖼️ Image preview in terminal (sixel/kitty)
 - 🎤 Voice message playback
 - 📹 Video call notifications
 - 🤖 Bot/automation support
 - 📊 Usage statistics (local only)
+
+### Radio & Hardware
+- 📡 Support for additional LoRa modules (RNode, Meshtastic devices)
+- 🔋 Battery-optimized mode for portable operation
+- 📻 HF packet radio support (experimental)
+- 🛰️ Satellite link support (Iridium, etc.)
+- 🔌 GPIO integration for status LEDs
 
 ### Platforms
 - 📦 Flatpak package
@@ -133,12 +190,43 @@ These are ideas for future development, not committed:
 - 📦 Debian/Ubuntu package
 - 📦 RPM package
 - 🪟 Windows binary releases
+- 🍇 Raspberry Pi optimized builds
 
 ### Integrations
 - 🔗 tmux integration
 - 🔗 SSH-friendly mode
 - 🔗 Screen reader support
 - 🔗 CLI mode (non-interactive)
+- 📊 InfluxDB/Grafana export for monitoring
+- 🔗 Prometheus metrics endpoint
+
+### Testing & Development
+- 🧪 Automated multi-client test harness
+- 📊 Message delivery analytics
+- 🔬 Protocol debugging tools
+- 📈 Performance benchmarking suite
+
+---
+
+## Hardware Compatibility (Radio Features)
+
+The radio transport layer (v0.5.0+) will support:
+
+| Hardware | Status | Notes |
+|----------|--------|-------|
+| **uConsole AIO V2** | Primary target | LoRa + RTL-SDR + GPS integrated |
+| **RNode** | Planned | Reticulum-native device |
+| **USB LoRa Modules** | Planned | SX1262/SX1276 based |
+| **Meshtastic Devices** | Evaluation | Possible bridge mode |
+
+### Range Expectations
+
+| Environment | Metric | Imperial |
+|-------------|--------|----------|
+| Urban (buildings) | 2-5 km | 1-3 miles |
+| Suburban | 8-15 km | 5-10 miles |
+| Rural / Open | 15-30 km | 10-20 miles |
+| Line of sight (hilltop) | 50+ km | 30+ miles |
 
 ---
 
@@ -150,6 +238,18 @@ Want to help achieve these goals?
 2. Look for issues labeled `good first issue`
 3. Join discussions on GitHub
 4. Report bugs and suggest features
+
+### Priority Areas for Contributors
+
+| Area | Difficulty | Impact |
+|------|------------|--------|
+| File Transfer UI | Medium | High |
+| Group Chat Support | Hard | High |
+| Theme System | Easy | Medium |
+| Vim Keybindings | Easy | Medium |
+| Documentation | Easy | High |
+| Radio Protocol Testing | Hard | High |
+| Reticulum Integration | Medium | Medium |
 
 ---
 
@@ -172,3 +272,4 @@ Track our progress:
 ---
 
 *Last updated: January 2026*
+```
