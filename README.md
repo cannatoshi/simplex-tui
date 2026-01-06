@@ -6,7 +6,7 @@
 ![Rust](https://img.shields.io/badge/Rust-1.92+-orange?logo=rust)
 [![SimpleX](https://img.shields.io/badge/SimpleX-Compatible-7D4698.svg)](https://simplex.chat/)
 [![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)](#status)
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS-lightgrey.svg)](#installation)
+[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](#installation)
 [![Maintenance](https://img.shields.io/badge/Maintained-Actively-success.svg)](https://github.com/cannatoshi/simplex-tui/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](#contributing)
 [![Legal](https://img.shields.io/badge/Legal-See%20LEGAL.md-lightgrey.svg)](LEGAL.md)
@@ -31,7 +31,8 @@ A lightweight, keyboard-driven terminal user interface for SimpleX Chat. Built i
 > Not recommended for production use without thorough testing.
 > 
 > ✅ **What works:** Real-time messaging, contact management, address creation/sharing, message status tracking, keyboard navigation, mouse support  
-> 🚧 **In progress:** File transfers, group chats, settings UI, Tor integration
+> 🚧 **In progress:** File transfers, group chats, settings UI, Tor integration  
+> 📡 **Planned:** Optional radio transport layer for off-grid communication
 
 ---
 
@@ -98,6 +99,29 @@ cargo build --release
 | **Tor Integration** | Planned | v0.3.0 |
 | **Notifications** | Planned | v0.3.0 |
 
+### 📡 Planned: Radio Transport (Experimental)
+
+For users running cyberdeck hardware like the uConsole with AIO V2 expansion, an optional radio transport layer is planned for v0.5.0. This is entirely optional and designed for advanced users who want resilient off-grid communication.
+
+| Feature | Description |
+|---------|-------------|
+| **LoRa Transport** | Encrypted messaging over 868 MHz (EU) / 915 MHz (US) |
+| **Reticulum Support** | Interoperability with existing mesh network ecosystem |
+| **Custom Protocol** | Lightweight option for closed groups |
+| **Dual Transport** | Automatic fallback: Tor when online, radio when offline |
+| **RTL-SDR Monitor** | Optional spectrum awareness integration |
+| **GPS Integration** | Optional location-aware features |
+
+**Range Expectations:**
+
+| Environment | Metric | Imperial |
+|-------------|--------|----------|
+| Urban (buildings) | 2-5 km | 1-3 miles |
+| Suburban | 8-15 km | 5-10 miles |
+| Line of sight | 50+ km | 30+ miles |
+
+> ⚠️ **Note:** Radio features require additional hardware and are subject to local regulations. See [DISCLAIMER.md](DISCLAIMER.md) for details.
+
 ### 📋 Planned
 
 | Feature | Description |
@@ -105,7 +129,7 @@ cargo build --release
 | **Message Search** | Search through chat history |
 | **Export/Import** | Backup and restore conversations |
 | **Themes** | Customizable color schemes |
-| **Plugins** | Extensible architecture |
+| **Plugins** | Extensible architecture for testing and automation |
 
 ---
 
@@ -124,6 +148,7 @@ cargo build --release
 
 ## 🏗️ Architecture
 
+### Current Architecture (v0.1.x)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     SIMPLEX TUI (Terminal)                      │
@@ -165,6 +190,42 @@ cargo build --release
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### Planned Architecture (v0.5.0+ with Radio Transport)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     SIMPLEX TUI (Terminal)                      │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  UI Layer (ratatui)                                       │  │
+│  │  ├── Contact List    ├── Chat View    ├── Input Field    │  │
+│  │  ├── Status Bar      ├── Modals       └── Action Bar     │  │
+│  │  └── Transport Indicator: [🧅 Tor] [📡 Radio]             │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                              │                                  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  Transport Manager                                        │  │
+│  │  ├── SimpleX Transport (WebSocket → CLI → Tor → .onion)  │  │
+│  │  ├── Radio Transport (Serial → LoRa → Encrypted RF)      │  │
+│  │  │   ├── Reticulum/LXMF Mode (mesh interoperability)     │  │
+│  │  │   └── Custom Protocol Mode (closed groups)            │  │
+│  │  └── Capability Detection (per contact)                   │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                              │                                  │
+│              ┌───────────────┴───────────────┐                  │
+│              ▼                               ▼                  │
+│  ┌─────────────────────┐         ┌─────────────────────┐       │
+│  │  SimpleX CLI        │         │  LoRa Module        │       │
+│  │  (Tor Transport)    │         │  (Radio Transport)  │       │
+│  └──────────┬──────────┘         └──────────┬──────────┘       │
+└─────────────┼───────────────────────────────┼───────────────────┘
+              │                               │
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────────────┐
+│  SMP/XFTP SERVERS       │     │  RADIO NETWORK                  │
+│  (.onion via Tor)       │     │  ├── Direct P2P (custom proto)  │
+└─────────────────────────┘     │  └── Mesh (Reticulum network)   │
+                                └─────────────────────────────────┘
+```
+
 ---
 
 ## 📦 Installation
@@ -177,8 +238,15 @@ cargo build --release
 | **SimpleX CLI** | Latest | Running with WebSocket enabled |
 | **Terminal** | Any | 256-color support recommended |
 
-### Build from Source
+### Optional Hardware (for Radio Transport v0.5.0+)
 
+| Hardware | Description | Notes |
+|----------|-------------|-------|
+| **uConsole AIO V2** | Primary target platform | LoRa + RTL-SDR + GPS integrated |
+| **RNode** | Reticulum-native LoRa device | For mesh interoperability |
+| **USB LoRa Module** | SX1262/SX1276 based | Alternative for desktop use |
+
+### Build from Source
 ```bash
 # Clone repository
 git clone https://github.com/cannatoshi/simplex-tui.git
@@ -200,14 +268,12 @@ cargo build --release
 ## 🚀 Quick Start
 
 ### 1. Start SimpleX CLI Backend
-
 ```bash
 # Start simplex-chat with WebSocket API enabled
 simplex-chat -p 5225
 ```
 
 ### 2. Run SimpleX TUI
-
 ```bash
 # From the project directory
 ./target/release/simplex-tui
@@ -272,7 +338,6 @@ simplex-tui
 ## 🔧 Configuration
 
 ### Environment Variables
-
 ```bash
 # WebSocket connection (default: ws://localhost:5225)
 SIMPLEX_WS_URL=ws://localhost:5225
@@ -284,7 +349,6 @@ RUST_LOG=debug
 ### SimpleX CLI Setup
 
 The TUI requires SimpleX CLI running with WebSocket API:
-
 ```bash
 # Basic setup
 simplex-chat -p 5225
@@ -299,7 +363,6 @@ simplex-chat -p 5225 --socks-proxy=localhost:9050
 ---
 
 ## 📁 Project Structure
-
 ```
 simplex-tui/
 ├── src/
@@ -328,6 +391,8 @@ simplex-tui/
 
 ## 🛠️ Tech Stack
 
+### Current Dependencies
+
 | Component | Technology |
 |-----------|------------|
 | **Language** | Rust 1.92+ |
@@ -338,40 +403,37 @@ simplex-tui/
 | **JSON Parsing** | serde_json |
 | **Backend** | SimpleX Chat CLI |
 
+### Planned Dependencies (v0.5.0+ Radio Transport)
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Serial Communication** | serialport | LoRa module interface |
+| **Key Exchange** | x25519-dalek | Curve25519 ECDH |
+| **Encryption** | chacha20poly1305 | Message encryption |
+| **Signatures** | ed25519-dalek | Message authentication |
+| **Reticulum** | reticulum (Python) | Mesh interoperability |
+
 ---
 
 ## 🗺️ Roadmap
 
-### v0.2.0 - Enhanced Communication
-- [ ] File transfer support (XFTP)
-- [ ] Group chat support
-- [ ] Message reactions
-- [ ] Reply to messages
+See [ROADMAP.md](ROADMAP.md) for detailed development plans.
 
-### v0.3.0 - Privacy & Security
-- [ ] Built-in Tor support
-- [ ] Message encryption indicators
-- [ ] Contact verification
-- [ ] Screen lock
+### Summary
 
-### v0.4.0 - Polish & Customization
-- [ ] Custom themes
-- [ ] Configurable keybindings
-- [ ] Message search
-- [ ] Export/import
-
-### v1.0.0 - Production Ready
-- [ ] Stable API
-- [ ] Full test coverage
-- [ ] Documentation
-- [ ] Package managers (apt, brew, cargo)
+| Version | Target | Highlights |
+|---------|--------|------------|
+| **v0.2.0** | Feb 2026 | File transfers, group chats |
+| **v0.3.0** | Apr 2026 | Tor integration, encryption indicators |
+| **v0.4.0** | Jul 2026 | Themes, plugins, multi-instance testing |
+| **v0.5.0** | Oct 2026 | Radio transport (LoRa, Reticulum) |
+| **v1.0.0** | Mar 2027 | Stable release |
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### WebSocket Connection Failed
-
 ```bash
 # Check if SimpleX CLI is running
 ps aux | grep simplex-chat
@@ -384,7 +446,6 @@ ss -tlnp | grep 5225
 ```
 
 ### No Contacts Showing
-
 ```bash
 # Verify SimpleX CLI has contacts
 # In SimpleX CLI directly:
@@ -395,7 +456,6 @@ websocat ws://localhost:5225
 ```
 
 ### Messages Not Sending
-
 ```bash
 # Check terminal size (minimum 80x24 recommended)
 echo "Columns: $COLUMNS, Lines: $LINES"
@@ -405,7 +465,6 @@ RUST_LOG=debug ./target/release/simplex-tui
 ```
 
 ### Build Errors
-
 ```bash
 # Update Rust
 rustup update
@@ -438,6 +497,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 | Theme System | Easy | Medium |
 | Vim Keybindings | Easy | Medium |
 | Documentation | Easy | High |
+| Radio Protocol Testing | Hard | High |
 
 ---
 
@@ -446,6 +506,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 - **[SimpleX Chat](https://github.com/simplex-chat/simplex-chat)** - The SimpleX Chat application
 - **[SimpleX Private Infrastructure](https://github.com/cannatoshi/simplex-smp-xftp-via-tor-on-rpi5-hardened)** - Deploy SimpleX servers on Raspberry Pi
 - **[SimpleX SMP Monitor](https://github.com/cannatoshi/simplex-smp-monitor)** - Web-based monitoring for SimpleX infrastructure
+- **[Reticulum Network Stack](https://github.com/markqvist/Reticulum)** - Cryptographic networking for mesh communication
 
 ---
 
@@ -463,6 +524,8 @@ This software is provided "AS IS" without warranty of any kind. The authors are 
 
 > **Note:** This project is **not affiliated with or endorsed by SimpleX Chat Ltd**.  
 > "SimpleX" is a trademark of SimpleX Chat Ltd. See [TRADEMARK.md](TRADEMARK.md) for details.
+
+> **Radio Features:** Radio transmission is subject to local regulations. Users are responsible for compliance with applicable laws. See [DISCLAIMER.md](DISCLAIMER.md) for details.
 
 For complete legal information, see:
 - [LEGAL.md](LEGAL.md) - Legal documentation overview
