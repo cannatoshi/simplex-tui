@@ -22,6 +22,7 @@ Need help with SimpleX TUI? Here's how to get support.
 - [README.md](README.md) - Installation and usage
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup
 - [CONTRIBUTING.md](CONTRIBUTING.md) - How to contribute
+- [ROADMAP.md](ROADMAP.md) - Planned features and timeline
 
 ### 2. Search Existing Issues
 
@@ -62,6 +63,10 @@ A: No. SimpleX TUI is an independent, community-driven project. See [TRADEMARK.m
 **Q: What license is SimpleX TUI under?**
 
 A: AGPL-3.0. See [LICENSE](LICENSE) for the full text.
+
+**Q: What platforms are supported?**
+
+A: Linux, macOS, and Windows are supported. The TUI runs in any terminal with UTF-8 and 256-color support.
 
 ### Installation
 
@@ -112,6 +117,10 @@ A: See the [README.md](README.md#keyboard-shortcuts) for a full list.
 
 A: Yes! Click on contacts to select them, click buttons in modals, and more.
 
+**Q: What is Panic Mode?**
+
+A: Press `p` to instantly clear the screen for privacy. Useful if someone unexpectedly looks at your screen.
+
 ### Troubleshooting
 
 **Q: SimpleX TUI can't connect to SimpleX CLI**
@@ -131,6 +140,111 @@ A:
 1. Check WebSocket connection status in the status bar
 2. Try refreshing with `r` key
 3. Restart both SimpleX CLI and TUI
+
+### Radio Transport (Planned v0.5.0+)
+
+**Q: What is the radio transport feature?**
+
+A: An optional feature that allows sending encrypted messages over LoRa radio instead of the internet. When Tor/internet is available, SimpleX TUI uses it. When offline, it can fall back to radio communication with contacts who also have radio hardware.
+
+**Q: Do I need special hardware for radio features?**
+
+A: Yes. Supported hardware includes:
+
+| Hardware | Description | Status |
+|----------|-------------|--------|
+| uConsole AIO V2 | Integrated LoRa + RTL-SDR + GPS | Primary target |
+| RNode | Reticulum-compatible LoRa device | Planned |
+| USB LoRa Modules | SX1262/SX1276 based | Planned |
+
+**Q: What is the range of LoRa communication?**
+
+A: Range depends on environment, antenna, and power settings:
+
+| Environment | Metric | Imperial |
+|-------------|--------|----------|
+| Urban (buildings) | 2-5 km | 1-3 miles |
+| Suburban | 8-15 km | 5-10 miles |
+| Rural / Open | 15-30 km | 10-20 miles |
+| Line of sight (hilltop) | 50+ km | 30+ miles |
+
+**Q: Is radio transmission legal?**
+
+A: ISM band transmission (868 MHz EU / 915 MHz US) is legal in most countries within power and duty cycle limits. However:
+
+- ⚠️ Regulations vary by country
+- ⚠️ Some countries have additional restrictions
+- ⚠️ You are solely responsible for compliance
+
+See [DISCLAIMER.md](DISCLAIMER.md) for detailed regulatory information.
+
+**Q: What is the difference between Reticulum mode and custom protocol mode?**
+
+A: 
+
+| Feature | Reticulum Mode | Custom Protocol Mode |
+|---------|----------------|---------------------|
+| Mesh interoperability | ✅ Yes | ❌ No |
+| Works with Nomad Network | ✅ Yes | ❌ No |
+| Lightweight | ⚠️ Moderate | ✅ Very |
+| Closed group privacy | ⚠️ Moderate | ✅ High |
+| Setup complexity | ⚠️ Higher | ✅ Lower |
+
+**Reticulum Mode:** Use if you want to communicate with the wider Reticulum mesh network, including Nomad Network, Sideband, and MeshChat users.
+
+**Custom Protocol Mode:** Use if you only need to communicate within a closed group and want maximum simplicity and privacy.
+
+**Q: Can I use both Reticulum and custom protocol?**
+
+A: Yes, but not simultaneously with the same contact. Each contact can be configured to use either Reticulum or the custom protocol.
+
+**Q: Do radio messages have the same encryption as SimpleX?**
+
+A: Yes. The radio transport uses the same cryptographic primitives:
+
+- X25519 ECDH for key exchange
+- ChaCha20-Poly1305 for encryption
+- Ed25519 for signatures
+- Ephemeral keys for forward secrecy
+
+**Q: Can my radio transmissions be tracked?**
+
+A: Yes. Unlike Tor, radio transmissions can be located using direction-finding equipment. If this is a concern:
+
+- Keep transmissions short
+- Vary your transmission location
+- Use Tor as your primary transport when available
+
+**Q: What is RTL-SDR monitoring?**
+
+A: An optional feature (requires RTL-SDR hardware) that lets you monitor the radio spectrum around you. This provides situational awareness of other radio activity in your area.
+
+**Q: Can I use amateur radio frequencies?**
+
+A: If you hold a valid amateur radio license, you may use frequencies and power levels according to your license class. However:
+
+- ⚠️ Encrypted communications may be prohibited on amateur bands
+- ⚠️ Check your local amateur radio regulations
+- ⚠️ You are responsible for compliance
+
+### Plugin Architecture (Planned v0.4.0+)
+
+**Q: What is the plugin architecture for?**
+
+A: The plugin architecture is primarily designed for extended infrastructure testing scenarios. When operating multiple SimpleX clients that exchange messages automatically – for instance, stress testing your own SMP servers or validating message delivery across a distributed setup – you can run several TUI instances in parallel. Each instance connects to a separate SimpleX CLI backend and visualizes the message flow in real time.
+
+**Q: What can I do with plugins?**
+
+A:
+- Run multiple TUI instances for parallel testing
+- Monitor automated test conversations visually
+- Hook into events and trigger custom actions
+- Feed data into external monitoring tools (InfluxDB, Grafana)
+- Create custom visualizations
+
+**Q: Do I need plugins for normal use?**
+
+A: No. Plugins are for advanced users who want to extend functionality or run automated tests. Normal messaging works without any plugins.
 
 ---
 
@@ -217,6 +331,54 @@ stty sane
 - This may indicate a busy loop
 - Please report as a bug with details
 
+### Radio Transport Issues (v0.5.0+)
+
+#### LoRa Module Not Detected
+```bash
+# Check if serial device is present
+ls -la /dev/ttyUSB* /dev/ttyACM*
+
+# Check permissions
+sudo usermod -a -G dialout $USER
+# Log out and log back in
+
+# Check dmesg for device info
+dmesg | grep -i tty
+```
+
+#### No Radio Communication
+
+1. Verify both parties have radio hardware connected
+2. Check that you're on the same frequency
+3. Verify antenna is connected properly
+4. Check signal strength indicator in TUI
+5. Try moving to a location with better line of sight
+
+#### Reticulum Not Connecting
+```bash
+# Check if Reticulum daemon is running
+rnsd --version
+
+# Start Reticulum daemon
+rnsd
+
+# Check Reticulum status
+rnstatus
+```
+
+#### RTL-SDR Not Working
+```bash
+# Check if RTL-SDR is detected
+rtl_test
+
+# Install RTL-SDR drivers if needed (Debian/Ubuntu)
+sudo apt install rtl-sdr
+
+# Blacklist default DVB driver
+echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtl.conf
+sudo modprobe -r dvb_usb_rtl28xxu
+```
+
 ---
 
 ## SimpleX CLI Issues
@@ -225,6 +387,13 @@ For issues with SimpleX Chat CLI itself (not SimpleX TUI):
 
 - [SimpleX Chat Issues](https://github.com/simplex-chat/simplex-chat/issues)
 - [SimpleX Documentation](https://simplex.chat/docs/)
+
+## Reticulum Issues
+
+For issues with Reticulum Network Stack (not SimpleX TUI):
+
+- [Reticulum Issues](https://github.com/markqvist/Reticulum/issues)
+- [Reticulum Documentation](https://reticulum.network/manual/)
 
 ---
 
