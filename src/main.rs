@@ -97,7 +97,7 @@ fn handle_simplex_event(app: &mut App, event: SimplexEvent) {
                 if let Some(contact) = app.contacts.iter_mut().find(|c| &c.name == current) {
                     contact.unread = 0;
                 }
-                app.status = format!("{} messages", count);
+                app.status = format!("Chat: {}", current);
             }
         }
         

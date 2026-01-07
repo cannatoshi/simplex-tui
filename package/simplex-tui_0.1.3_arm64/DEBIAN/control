@@ -1,0 +1,13 @@
+Package: simplex-tui
+Version: 0.1.3
+Section: net
+Priority: optional
+Architecture: arm64
+Depends: libc6
+Maintainer: cannatoshi <it-and-more-systems@t-online.de>
+Description: Terminal UI for SimpleX Chat
+ A cyberdeck-style terminal user interface for SimpleX Chat.
+ Features encrypted messaging, contact management, and runs
+ entirely in the terminal. Designed for privacy-focused
+ communication on devices like the Clockwork uConsole.
+Homepage: https://github.com/cannatoshi/simplex-tui

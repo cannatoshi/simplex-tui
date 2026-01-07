@@ -20,6 +20,7 @@ pub struct App {
     pub contacts: Vec<Contact>,
     pub contact_state: ListState,
     pub messages: Vec<ChatMessage>,
+    pub message_limit: usize,
     pub scroll: usize,
     pub input: String,
     pub cursor: usize,
@@ -55,6 +56,7 @@ impl App {
             contacts: vec![],
             contact_state,
             messages: vec![],
+            message_limit: 50,
             scroll: 0,
             input: String::new(),
             cursor: 0,
@@ -116,6 +118,7 @@ impl App {
         if let Some(contact) = self.selected_contact() {
             let name = contact.name.clone();
             self.current_contact = Some(name.clone());
+            self.message_limit = 50;
             self.messages.clear();
             self.scroll = 0;
             
@@ -308,7 +311,16 @@ impl App {
     }
     
     pub fn auto_scroll(&mut self) { self.scroll = usize::MAX; }
-    pub fn scroll_up(&mut self) { self.scroll = self.scroll.saturating_sub(1); }
+    pub fn scroll_up(&mut self) {
+        if self.scroll == 0 && self.message_limit < 500 {
+            self.message_limit += 50;
+            if let Some(name) = &self.current_contact.clone() {
+                self.send_cmd(&format!("/tail @'{}' {}", name, self.message_limit));
+                self.status = format!("Loading {} messages...", self.message_limit);
+            }
+        }
+        self.scroll = self.scroll.saturating_sub(1);
+    }
     pub fn scroll_down(&mut self) { self.scroll = self.scroll.saturating_add(1); }
     
     pub fn input_char(&mut self, c: char) { let mut chars: Vec<char> = self.input.chars().collect(); chars.insert(self.cursor, c); self.input = chars.into_iter().collect(); self.cursor += 1; }
