@@ -37,6 +37,7 @@ pub struct App {
     
     pub contact_for_options: Option<String>,
     pub contact_info_data: Option<crate::types::ContactInfoData>,
+    pub file_explorer: Option<ratatui_explorer::FileExplorer>,
     pub btn_refresh: Option<ratatui::layout::Rect>,
     pub btn_create: Option<ratatui::layout::Rect>,
     pub btn_close: Option<ratatui::layout::Rect>,
@@ -77,6 +78,7 @@ impl App {
             
             contact_for_options: None,
             contact_info_data: None,
+            file_explorer: None,
             btn_refresh: None,
             btn_create: None,
             btn_close: None,

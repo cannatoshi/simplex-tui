@@ -43,6 +43,7 @@ pub fn render(frame: &mut Frame, app: &mut App) {
     if app.mode == Mode::AddContact { modals::render_add_contact(frame, app); }
     if app.mode == Mode::ContactOptions { modals::render_contact_options(frame, app); }
     if app.mode == Mode::ContactInfo { modals::render_contact_info(frame, app); }
+    if app.mode == Mode::FileBrowser { modals::render_file_browser(frame, app); }
 }
 
 fn render_left(frame: &mut Frame, area: Rect, app: &mut App) {

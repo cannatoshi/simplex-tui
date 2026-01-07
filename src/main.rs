@@ -102,7 +102,8 @@ fn handle_simplex_event(app: &mut App, event: SimplexEvent) {
         }
         
         SimplexEvent::NewMessage { sender, text } => {
-            let is_current_chat = app.current_contact.as_ref() == Some(&sender);
+            let is_mine = sender == "You";
+            let is_current_chat = is_mine || app.current_contact.as_ref() == Some(&sender);
             
             if is_current_chat {
                 use chrono::Local;
@@ -110,11 +111,15 @@ fn handle_simplex_event(app: &mut App, event: SimplexEvent) {
                     sender: sender.clone(),
                     content: text.clone(),
                     time: Local::now().format("%H:%M").to_string(),
-                    mine: false,
-                    status: types::MessageStatus::Delivered,
+                    mine: is_mine,
+                    status: if is_mine { types::MessageStatus::Delivered } else { types::MessageStatus::Delivered },
                 });
                 app.auto_scroll();
-                app.status = "New message".into();
+                if is_mine {
+                    app.status = "File sent".into();
+                } else {
+                    app.status = "New message".into();
+                }
             } else {
                 if let Some(contact) = app.contacts.iter_mut().find(|c| c.name == sender) {
                     contact.unread += 1;

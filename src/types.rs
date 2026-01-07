@@ -47,6 +47,7 @@ pub enum Mode {
     AddContact,
     ContactOptions,
     ContactInfo,
+    FileBrowser,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

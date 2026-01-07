@@ -104,18 +104,48 @@ fn process_message(json: &serde_json::Value, event_tx: &mpsc::Sender<SimplexEven
                     
                     if let Some(ci) = item.get("chatItem") {
                         let dir = ci.get("chatDir").and_then(|d| d.get("type")).and_then(|t| t.as_str()).unwrap_or("");
+                        let content_type = ci.get("content").and_then(|c| c.get("type")).and_then(|t| t.as_str()).unwrap_or("");
+                        
                         if dir == "directSnd" {
                             let status = get_item_status(Some(ci));
                             let _ = event_tx.send(SimplexEvent::MessageUpdate { status });
-                        } else if let Some(text) = ci.get("content")
-                            .and_then(|c| c.get("msgContent"))
-                            .and_then(|mc| mc.get("text"))
-                            .and_then(|t| t.as_str()) 
-                        {
-                            let _ = event_tx.send(SimplexEvent::NewMessage { 
-                                sender: contact_name, 
-                                text: text.to_string() 
-                            });
+                            
+                            // Gesendete Datei anzeigen
+                            if content_type == "sndMsgContent" || content_type == "file" {
+                                if let Some(file) = ci.get("file") {
+                                    let file_name = file.get("fileName").and_then(|f| f.as_str()).unwrap_or("file");
+                                    let file_size = file.get("fileSize").and_then(|s| s.as_u64()).unwrap_or(0);
+                                    let _ = event_tx.send(SimplexEvent::NewMessage {
+                                        sender: "You".to_string(),
+                                        text: format!("📎 {} ({} bytes)", file_name, file_size),
+                                    });
+                                }
+                            }
+                        } else {
+                            // Empfangene Nachricht oder Datei
+                            if let Some(text) = ci.get("content")
+                                .and_then(|c| c.get("msgContent"))
+                                .and_then(|mc| mc.get("text"))
+                                .and_then(|t| t.as_str()) 
+                            {
+                                if !text.is_empty() {
+                                    let _ = event_tx.send(SimplexEvent::NewMessage { 
+                                        sender: contact_name.clone(), 
+                                        text: text.to_string() 
+                                    });
+                                }
+                            }
+                            
+                            // Empfangene Datei
+                            if let Some(file) = ci.get("file") {
+                                let file_name = file.get("fileName").and_then(|f| f.as_str()).unwrap_or("file");
+                                let file_size = file.get("fileSize").and_then(|s| s.as_u64()).unwrap_or(0);
+                                let file_id = file.get("fileId").and_then(|f| f.as_u64()).unwrap_or(0);
+                                let _ = event_tx.send(SimplexEvent::NewMessage {
+                                    sender: contact_name,
+                                    text: format!("📎 {} ({} bytes) [/fr {} ./]", file_name, file_size, file_id),
+                                });
+                            }
                         }
                     }
                 }
@@ -348,10 +378,43 @@ fn parse_contacts(arr: &[serde_json::Value]) -> Vec<Contact> {
 fn parse_chat_history(items: &[serde_json::Value]) -> Vec<ChatMessage> {
     items.iter().filter_map(|item| {
         let ci = item.get("chatItem")?;
-        let text = ci.get("content").and_then(|c| c.get("msgContent")).and_then(|mc| mc.get("text")).and_then(|t| t.as_str())?;
         let dir = ci.get("chatDir").and_then(|d| d.get("type")).and_then(|t| t.as_str()).unwrap_or("");
         let time = ci.get("meta").and_then(|m| m.get("itemTs")).and_then(|t| t.as_str()).and_then(|t| t.split('T').nth(1)).map(|t| t.chars().take(5).collect()).unwrap_or_default();
         let mine = dir == "directSnd";
-        Some(ChatMessage { sender: if mine { "You" } else { "Contact" }.into(), content: text.into(), time, mine, status: if mine { get_item_status(Some(ci)) } else { MessageStatus::Delivered } })
+        
+        // Text-Nachricht
+        let text = ci.get("content")
+            .and_then(|c| c.get("msgContent"))
+            .and_then(|mc| mc.get("text"))
+            .and_then(|t| t.as_str())
+            .map(|s| s.to_string());
+        
+        // Datei
+        let file_info = ci.get("file").map(|f| {
+            let name = f.get("fileName").and_then(|n| n.as_str()).unwrap_or("file");
+            let size = f.get("fileSize").and_then(|s| s.as_u64()).unwrap_or(0);
+            let id = f.get("fileId").and_then(|i| i.as_u64()).unwrap_or(0);
+            if mine {
+                format!("📎 {} ({} bytes)", name, size)
+            } else {
+                format!("📎 {} ({} bytes) [/fr {} ./]", name, size, id)
+            }
+        });
+        
+        // Kombiniere Text und/oder Datei
+        let content = match (text, file_info) {
+            (Some(t), Some(f)) => format!("{}\n{}", t, f),
+            (Some(t), None) => t,
+            (None, Some(f)) => f,
+            (None, None) => return None,
+        };
+        
+        Some(ChatMessage { 
+            sender: if mine { "You" } else { "Contact" }.into(), 
+            content, 
+            time, 
+            mine, 
+            status: if mine { get_item_status(Some(ci)) } else { MessageStatus::Delivered } 
+        })
     }).collect()
 }

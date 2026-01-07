@@ -130,6 +130,7 @@ fn handle_key(app: &mut App, code: KeyCode, mods: KeyModifiers) {
         Mode::AddContact => handle_add_contact(app, code),
         Mode::ContactOptions => handle_contact_options(app, code),
         Mode::ContactInfo => handle_contact_info(app, code),
+        Mode::FileBrowser => handle_file_browser(app, code),
         Mode::Normal => handle_normal(app, code),
         Mode::Input => handle_input(app, code),
     }
@@ -236,6 +237,12 @@ fn handle_normal(app: &mut App, code: KeyCode) {
                 app.open_contact_options(name);
             }
         }
+        KeyCode::Char('f') => {
+            if app.current_contact.is_some() {
+                app.file_explorer = Some(ratatui_explorer::FileExplorer::new().unwrap());
+                app.mode = Mode::FileBrowser;
+            }
+        }
         KeyCode::Char('j') | KeyCode::Down => {
             match app.panel {
                 Panel::Contacts => app.next_contact(),
@@ -288,5 +295,37 @@ fn handle_contact_info(app: &mut App, code: KeyCode) {
             app.mode = Mode::Normal;
         }
         _ => {}
+    }
+}
+
+fn handle_file_browser(app: &mut App, code: KeyCode) {
+    use crossterm::event::Event;
+    
+    if let Some(ref mut explorer) = app.file_explorer {
+        match code {
+            KeyCode::Esc => {
+                app.file_explorer = None;
+                app.mode = Mode::Normal;
+            }
+            KeyCode::Enter => {
+                let path = explorer.current().path().to_path_buf();
+                if path.is_file() {
+                    // Datei ausgewählt - senden
+                    if let Some(contact) = &app.current_contact {
+                        let cmd = format!("/f @'{}' {}", contact, path.display());
+                        app.send_cmd(&cmd);
+                        app.status = format!("Sending {}...", path.file_name().unwrap_or_default().to_string_lossy());
+                    }
+                    app.file_explorer = None;
+                    app.mode = Mode::Normal;
+                } else {
+                    // Ordner - hinein navigieren
+                    let _ = explorer.handle(&Event::Key(crossterm::event::KeyEvent::new(code, crossterm::event::KeyModifiers::NONE)));
+                }
+            }
+            _ => {
+                let _ = explorer.handle(&Event::Key(crossterm::event::KeyEvent::new(code, crossterm::event::KeyModifiers::NONE)));
+            }
+        }
     }
 }

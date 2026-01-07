@@ -468,3 +468,21 @@ pub fn render_contact_info(frame: &mut Frame, app: &mut App) {
     
     frame.render_widget(Paragraph::new(lines), inner);
 }
+
+pub fn render_file_browser(frame: &mut Frame, app: &mut App) {
+    let area = frame.area();
+    frame.render_widget(Clear, area);
+    
+    let block = Block::default()
+        .title(Span::styled(" Select File to Send ", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD)))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(colors::BLUE))
+        .style(Style::default().bg(colors::BG));
+    
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+    
+    if let Some(ref explorer) = app.file_explorer {
+        frame.render_widget_ref(explorer.widget(), inner);
+    }
+}
