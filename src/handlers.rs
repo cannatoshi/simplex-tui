@@ -134,6 +134,7 @@ fn handle_key(app: &mut App, code: KeyCode, mods: KeyModifiers) {
         Mode::Panic => handle_panic(app, code),
         Mode::AddContact => handle_add_contact(app, code),
         Mode::ContactOptions => handle_contact_options(app, code),
+        Mode::ContactInfo => handle_contact_info(app, code),
         Mode::Normal => handle_normal(app, code),
         Mode::Input => handle_input(app, code),
     }
@@ -281,6 +282,16 @@ fn handle_input(app: &mut App, code: KeyCode) {
         KeyCode::Home => app.cursor_home(),
         KeyCode::End => app.cursor_end(),
         KeyCode::Char(c) => app.input_char(c),
+        _ => {}
+    }
+}
+
+fn handle_contact_info(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => {
+            app.contact_info_data = None;
+            app.mode = Mode::Normal;
+        }
         _ => {}
     }
 }

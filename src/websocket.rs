@@ -177,6 +177,93 @@ fn process_message(json: &serde_json::Value, event_tx: &mpsc::Sender<SimplexEven
             let _ = event_tx.send(SimplexEvent::Error(err));
         }
         
+        "contactInfo" => {
+            let contact = resp.get("contact");
+            let conn_stats = resp.get("connectionStats");
+            
+            let name = contact
+                .and_then(|c| c.get("localDisplayName"))
+                .and_then(|n| n.as_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            
+            let bio = contact
+                .and_then(|c| c.get("profile"))
+                .and_then(|p| p.get("shortDescr"))
+                .and_then(|b| b.as_str())
+                .unwrap_or("")
+                .to_string();
+            
+            let address = contact
+                .and_then(|c| c.get("profile"))
+                .and_then(|p| p.get("contactLink"))
+                .and_then(|l| l.as_str())
+                .unwrap_or("")
+                .to_string();
+            
+            let receiving_server = conn_stats
+                .and_then(|cs| cs.get("rcvServers"))
+                .and_then(|rs| rs.as_array())
+                .and_then(|arr| arr.first())
+                .and_then(|s| s.as_str())
+                .unwrap_or("")
+                .to_string();
+            
+            let sending_server = conn_stats
+                .and_then(|cs| cs.get("sndServers"))
+                .and_then(|ss| ss.as_array())
+                .and_then(|arr| arr.first())
+                .and_then(|s| s.as_str())
+                .unwrap_or("")
+                .to_string();
+            
+            let pq_encryption = contact
+                .and_then(|c| c.get("activeConn"))
+                .and_then(|ac| ac.get("pqEncryption"))
+                .and_then(|pq| pq.as_bool())
+                .unwrap_or(false);
+            
+            let connection_status = contact
+                .and_then(|c| c.get("activeConn"))
+                .and_then(|ac| ac.get("connStatus"))
+                .and_then(|cs| cs.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            
+            let chat_version = contact
+                .and_then(|c| c.get("activeConn"))
+                .and_then(|ac| ac.get("peerChatVRange"))
+                .map(|v| format!("v{}-{}", 
+                    v.get("minVersion").and_then(|m| m.as_u64()).unwrap_or(0),
+                    v.get("maxVersion").and_then(|m| m.as_u64()).unwrap_or(0)))
+                .unwrap_or_default();
+            
+            let created_at = contact
+                .and_then(|c| c.get("createdAt"))
+                .and_then(|t| t.as_str())
+                .map(|s| s.chars().take(10).collect())
+                .unwrap_or_default();
+            
+            let updated_at = contact
+                .and_then(|c| c.get("updatedAt"))
+                .and_then(|t| t.as_str())
+                .map(|s| s.chars().take(10).collect())
+                .unwrap_or_default();
+            
+            let info_data = crate::types::ContactInfoData {
+                name: name.clone(),
+                bio,
+                address,
+                receiving_server,
+                sending_server,
+                created_at,
+                updated_at,
+                pq_encryption,
+                connection_status,
+                chat_version,
+            };
+            let _ = event_tx.send(SimplexEvent::ContactInfo(info_data));
+        }
         _ => {}
     }
 }

@@ -209,7 +209,7 @@ pub fn render_contact_options(frame: &mut Frame, app: &App) {
     let block = Block::default()
         .title(Span::styled(title, Style::default().fg(avatar_color).add_modifier(Modifier::BOLD)))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(avatar_color))
+        .border_style(Style::default().fg(colors::BLUE))
         .style(Style::default().bg(colors::BG));
     
     let inner = block.inner(area);
@@ -343,4 +343,134 @@ fn po(k: &str, n: &str, d: &str, c: ratatui::style::Color) -> Line<'static> {
         Span::styled(format!("{:8}", n), Style::default().fg(c).add_modifier(Modifier::BOLD)),
         Span::styled(format!(" - {}", d), Style::default().fg(colors::TEXT_DIM)),
     ])
+}
+
+pub fn render_contact_info(frame: &mut Frame, app: &App) {
+    let area = frame.area();
+    frame.render_widget(Clear, area);
+    
+    let info = match &app.contact_info_data {
+        Some(data) => data,
+        None => return,
+    };
+    
+    let avatar_color = colors::avatar_color(&info.name);
+    let title = format!(" Contact Info: {} ", info.name);
+    
+    let block = Block::default()
+        .title(Span::styled(title, Style::default().fg(avatar_color).add_modifier(Modifier::BOLD)))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(colors::BLUE))
+        .style(Style::default().bg(colors::BG));
+    
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+    
+    let mut lines = vec![
+        Line::from(""),
+    ];
+    
+    // Avatar and name
+    let initials = colors::get_initials(&info.name);
+    lines.push(Line::from(vec![
+        Span::styled("    [", Style::default().fg(avatar_color)),
+        Span::styled(&initials, Style::default().fg(avatar_color).add_modifier(Modifier::BOLD)),
+        Span::styled("] ", Style::default().fg(avatar_color)),
+        Span::styled(&info.name, Style::default().fg(colors::TEXT).add_modifier(Modifier::BOLD)),
+    ]));
+    lines.push(Line::from(""));
+    
+    let sep: String = "─".repeat((inner.width as usize).saturating_sub(2));
+    lines.push(Line::from(Span::styled(format!(" {}", sep), Style::default().fg(colors::BORDER))));
+    lines.push(Line::from(""));
+    
+    // Bio
+    lines.push(Line::from(Span::styled(" Bio", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))));
+    if info.bio.is_empty() {
+        lines.push(Line::from(Span::styled("   No bio set", Style::default().fg(colors::TEXT_DIM))));
+    } else {
+        lines.push(Line::from(Span::styled(format!("   {}", info.bio), Style::default().fg(colors::TEXT))));
+    }
+    lines.push(Line::from(""));
+    
+    // Connection Status
+    lines.push(Line::from(Span::styled(" Connection", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))));
+    let status_color = if info.connection_status == "ready" { colors::SUCCESS } else { colors::WARNING };
+    lines.push(Line::from(vec![
+        Span::styled("   Status: ", Style::default().fg(colors::TEXT_DIM)),
+        Span::styled(&info.connection_status, Style::default().fg(status_color)),
+    ]));
+    
+    // PQ Encryption
+    let pq_text = if info.pq_encryption { "✓ Quantum Resistant" } else { "Standard" };
+    let pq_color = if info.pq_encryption { colors::SUCCESS } else { colors::TEXT };
+    lines.push(Line::from(vec![
+        Span::styled("   Encryption: ", Style::default().fg(colors::TEXT_DIM)),
+        Span::styled(pq_text, Style::default().fg(pq_color)),
+    ]));
+    
+    // Chat Version
+    if !info.chat_version.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("   Protocol: ", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled(&info.chat_version, Style::default().fg(colors::TEXT)),
+        ]));
+    }
+    lines.push(Line::from(""));
+    
+    // Servers
+    lines.push(Line::from(Span::styled(" Servers", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))));
+    if !info.receiving_server.is_empty() {
+        let server_short: String = info.receiving_server.chars().take(50).collect();
+        lines.push(Line::from(vec![
+            Span::styled("   Recv: ", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled(server_short, Style::default().fg(colors::TEXT)),
+        ]));
+    }
+    if !info.sending_server.is_empty() {
+        let server_short: String = info.sending_server.chars().take(50).collect();
+        lines.push(Line::from(vec![
+            Span::styled("   Send: ", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled(server_short, Style::default().fg(colors::TEXT)),
+        ]));
+    }
+    lines.push(Line::from(""));
+    
+    // Address
+    if !info.address.is_empty() {
+        lines.push(Line::from(Span::styled(" Contact Address", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))));
+        let addr_width = (inner.width as usize).saturating_sub(6);
+        for chunk in info.address.chars().collect::<Vec<_>>().chunks(addr_width) {
+            lines.push(Line::from(Span::styled(
+                format!("   {}", chunk.iter().collect::<String>()),
+                Style::default().fg(colors::BLUE_LIGHT)
+            )));
+        }
+        lines.push(Line::from(""));
+    }
+    
+    // Timestamps
+    lines.push(Line::from(Span::styled(" History", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))));
+    if !info.created_at.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("   Added: ", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled(&info.created_at, Style::default().fg(colors::TEXT)),
+        ]));
+    }
+    if !info.updated_at.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("   Updated: ", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled(&info.updated_at, Style::default().fg(colors::TEXT)),
+        ]));
+    }
+    lines.push(Line::from(""));
+    
+    lines.push(Line::from(Span::styled(format!(" {}", sep), Style::default().fg(colors::BORDER))));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        " Press [Esc] or [Enter] to close",
+        Style::default().fg(colors::TEXT_DIM)
+    )));
+    
+    frame.render_widget(Paragraph::new(lines), inner);
 }

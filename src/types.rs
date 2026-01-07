@@ -47,6 +47,7 @@ pub enum Mode {
     Panic, 
     AddContact,
     ContactOptions,
+    ContactInfo,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -104,7 +105,7 @@ pub enum SimplexEvent {
     ContactRequest(String),
     ContactDeleted(String),
     ChatCleared(String),
-    ContactInfo { name: String, info: String },
+    ContactInfo(ContactInfoData),
     Error(String),
     Status(String),
 }
@@ -127,4 +128,18 @@ impl ApiCommand {
     pub fn with_id(corr_id: impl Into<String>, cmd: impl Into<String>) -> Self {
         Self { corr_id: corr_id.into(), cmd: cmd.into() }
     }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct ContactInfoData {
+    pub name: String,
+    pub bio: String,
+    pub address: String,
+    pub receiving_server: String,
+    pub sending_server: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub pq_encryption: bool,
+    pub connection_status: String,
+    pub chat_version: String,
 }

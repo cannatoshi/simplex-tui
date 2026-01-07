@@ -35,6 +35,7 @@ pub struct App {
     pub pending_new_address: bool,
     
     pub contact_for_options: Option<String>,
+    pub contact_info_data: Option<crate::types::ContactInfoData>,
     pub option_selection: usize,
     pub confirm_action: Option<ContactOption>,
     
@@ -69,6 +70,7 @@ impl App {
             pending_new_address: false,
             
             contact_for_options: None,
+            contact_info_data: None,
             option_selection: 0,
             confirm_action: None,
             

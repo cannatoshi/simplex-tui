@@ -165,9 +165,9 @@ fn handle_simplex_event(app: &mut App, event: SimplexEvent) {
             app.on_chat_cleared(&name);
         }
         
-        SimplexEvent::ContactInfo { name, info } => {
-            app.status = format!("{}: {}", name, info.lines().next().unwrap_or("No info"));
-            app.close_contact_options();
+        SimplexEvent::ContactInfo(info_data) => {
+            app.contact_info_data = Some(info_data);
+            app.mode = crate::types::Mode::ContactInfo;
         }
         
         SimplexEvent::Error(err) => {
