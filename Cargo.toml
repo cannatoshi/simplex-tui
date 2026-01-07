@@ -12,7 +12,6 @@ categories = ["command-line-utilities"]
 [dependencies]
 ratatui = "0.29"
 ratatui-explorer = "0.2"
-lru = "0.16"
 crossterm = "0.28"
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros", "time", "sync"] }
 tokio-tungstenite = "0.26"
@@ -27,3 +26,4 @@ opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
+
