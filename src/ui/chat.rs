@@ -17,16 +17,12 @@ use crate::types::MessageStatus;
 
 pub fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     let w = area.width as usize;
-    
-    // Right: App title
     let title = "SimpleX TUI (cyberdeck)";
     
-    // Left: Contact name (if selected)
     let header = if let Some(name) = &app.current_contact {
         let initials = colors::get_initials(name);
         let color = colors::avatar_color(name);
         
-        // Calculate spacing
         let left_len = 1 + 1 + initials.len() + 2 + name.len();
         let right_len = title.len() + 1;
         let space = w.saturating_sub(left_len + right_len);

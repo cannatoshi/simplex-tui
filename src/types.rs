@@ -41,7 +41,54 @@ pub struct ChatMessage {
 pub enum Panel { Contacts, Chat, Input }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Mode { Normal, Input, Panic, AddContact }
+pub enum Mode { 
+    Normal, 
+    Input, 
+    Panic, 
+    AddContact,
+    ContactOptions,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum ContactOption {
+    DeleteContact,
+    ClearChat,
+    ContactInfo,
+    Cancel,
+}
+
+impl ContactOption {
+    pub fn all() -> Vec<Self> {
+        vec![
+            Self::DeleteContact,
+            Self::ClearChat,
+            Self::ContactInfo,
+            Self::Cancel,
+        ]
+    }
+    
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::DeleteContact => "Delete Contact",
+            Self::ClearChat => "Clear Chat History",
+            Self::ContactInfo => "Contact Info",
+            Self::Cancel => "Cancel",
+        }
+    }
+    
+    pub fn key(&self) -> char {
+        match self {
+            Self::DeleteContact => 'd',
+            Self::ClearChat => 'c',
+            Self::ContactInfo => 'i',
+            Self::Cancel => 'x',
+        }
+    }
+    
+    pub fn is_destructive(&self) -> bool {
+        matches!(self, Self::DeleteContact | Self::ClearChat)
+    }
+}
 
 #[derive(Debug)]
 pub enum SimplexEvent {
@@ -55,6 +102,9 @@ pub enum SimplexEvent {
     AddressDeleted,
     AddressCreated,
     ContactRequest(String),
+    ContactDeleted(String),
+    ChatCleared(String),
+    ContactInfo { name: String, info: String },
     Error(String),
     Status(String),
 }

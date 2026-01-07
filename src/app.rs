@@ -5,10 +5,13 @@
 //! Licensed under AGPL-3.0
 
 use std::sync::mpsc;
+use std::time::Instant;
 use chrono::Local;
 use ratatui::widgets::ListState;
 
-use crate::types::{Contact, ChatMessage, Panel, Mode, MessageStatus};
+use crate::types::{Contact, ChatMessage, Panel, Mode, MessageStatus, ContactOption};
+
+const DOUBLE_CLICK_MS: u128 = 400;
 
 pub struct App {
     pub running: bool,
@@ -30,6 +33,13 @@ pub struct App {
     pub invite_link: Option<String>,
     pub connect_input: String,
     pub pending_new_address: bool,
+    
+    pub contact_for_options: Option<String>,
+    pub option_selection: usize,
+    pub confirm_action: Option<ContactOption>,
+    
+    last_click_time: Option<Instant>,
+    last_click_index: Option<usize>,
 }
 
 impl App {
@@ -57,6 +67,13 @@ impl App {
             invite_link: None,
             connect_input: String::new(),
             pending_new_address: false,
+            
+            contact_for_options: None,
+            option_selection: 0,
+            confirm_action: None,
+            
+            last_click_time: None,
+            last_click_index: None,
         }
     }
     
@@ -109,6 +126,127 @@ impl App {
         }
     }
     
+    pub fn check_double_click(&mut self, contact_index: usize) -> bool {
+        let now = Instant::now();
+        let is_double = if let (Some(last_time), Some(last_idx)) = (self.last_click_time, self.last_click_index) {
+            last_idx == contact_index && now.duration_since(last_time).as_millis() < DOUBLE_CLICK_MS
+        } else {
+            false
+        };
+        
+        self.last_click_time = Some(now);
+        self.last_click_index = Some(contact_index);
+        
+        is_double
+    }
+    
+    pub fn open_contact_options(&mut self, contact_name: String) {
+        self.contact_for_options = Some(contact_name);
+        self.option_selection = 0;
+        self.confirm_action = None;
+        self.mode = Mode::ContactOptions;
+    }
+    
+    pub fn close_contact_options(&mut self) {
+        self.contact_for_options = None;
+        self.option_selection = 0;
+        self.confirm_action = None;
+        self.mode = Mode::Normal;
+    }
+    
+    pub fn next_option(&mut self) {
+        let len = ContactOption::all().len();
+        self.option_selection = (self.option_selection + 1) % len;
+    }
+    
+    pub fn prev_option(&mut self) {
+        let len = ContactOption::all().len();
+        self.option_selection = if self.option_selection == 0 { len - 1 } else { self.option_selection - 1 };
+    }
+    
+    pub fn execute_selected_option(&mut self) {
+        let options = ContactOption::all();
+        let option = options.get(self.option_selection).copied().unwrap_or(ContactOption::Cancel);
+        
+        if option.is_destructive() && self.confirm_action.is_none() {
+            self.confirm_action = Some(option);
+            self.status = format!("Press Enter again to confirm {}", option.label());
+        } else {
+            self.execute_option(option);
+        }
+    }
+    
+    pub fn execute_option(&mut self, option: ContactOption) {
+        if let Some(contact_name) = &self.contact_for_options.clone() {
+            match option {
+                ContactOption::DeleteContact => {
+                    self.delete_contact(contact_name);
+                }
+                ContactOption::ClearChat => {
+                    self.clear_chat(contact_name);
+                }
+                ContactOption::ContactInfo => {
+                    self.get_contact_info(contact_name);
+                }
+                ContactOption::Cancel => {
+                    self.close_contact_options();
+                }
+            }
+        } else {
+            self.close_contact_options();
+        }
+    }
+    
+    pub fn delete_contact(&mut self, name: &str) {
+        self.send_cmd(&format!("/d '{}'", name));
+        
+        self.contacts.retain(|c| c.name != name);
+        
+        if self.contact_state.selected().unwrap_or(0) >= self.contacts.len() && !self.contacts.is_empty() {
+            self.contact_state.select(Some(self.contacts.len() - 1));
+        } else if self.contacts.is_empty() {
+            self.contact_state.select(Some(0));
+        }
+        
+        if self.current_contact.as_ref() == Some(&name.to_string()) {
+            self.current_contact = None;
+            self.messages.clear();
+        }
+        
+        self.status = format!("Deleted: {}", name);
+        self.close_contact_options();
+    }
+    
+    pub fn clear_chat(&mut self, name: &str) {
+        self.send_cmd(&format!("/clear '{}'", name));
+        self.status = format!("Clearing chat with {}...", name);
+        
+        if self.current_contact.as_ref() == Some(&name.to_string()) {
+            self.messages.clear();
+        }
+        
+        self.close_contact_options();
+    }
+    
+    pub fn get_contact_info(&mut self, name: &str) {
+        self.send_cmd(&format!("/info '{}'", name));
+        self.status = format!("Loading info for {}...", name);
+    }
+    
+    pub fn on_contact_deleted(&mut self, name: &str) {
+        self.contacts.retain(|c| c.name != name);
+        
+        if self.contact_state.selected().unwrap_or(0) >= self.contacts.len() && !self.contacts.is_empty() {
+            self.contact_state.select(Some(self.contacts.len() - 1));
+        }
+        
+        self.status = format!("Deleted: {}", name);
+    }
+    
+    pub fn on_chat_cleared(&mut self, name: &str) {
+        self.status = format!("Chat cleared: {}", name);
+    }
+    
     pub fn refresh_chat(&self) {
         if let Some(name) = &self.current_contact {
             self.send_cmd(&format!("/tail @{} 50", name));
@@ -137,22 +275,18 @@ impl App {
         }
     }
     
-    /// Show existing address
     pub fn request_address(&mut self) {
         self.send_cmd("/sa");
         self.status = "Loading address...".into();
     }
     
-    /// Create NEW address (delete old first, then create new)
     pub fn create_address(&mut self) {
         self.invite_link = None;
         self.pending_new_address = true;
-        // First delete old address
         self.send_cmd("/da");
         self.status = "Creating new address...".into();
     }
     
-    /// Called after delete to create new
     pub fn finish_create_address(&mut self) {
         if self.pending_new_address {
             self.pending_new_address = false;

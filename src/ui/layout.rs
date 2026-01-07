@@ -41,6 +41,7 @@ pub fn render(frame: &mut Frame, app: &mut App) {
     if app.show_help { modals::render_help(frame); }
     if app.mode == Mode::Panic { modals::render_panic(frame, app); }
     if app.mode == Mode::AddContact { modals::render_add_contact(frame, app); }
+    if app.mode == Mode::ContactOptions { modals::render_contact_options(frame, app); }
 }
 
 fn render_left(frame: &mut Frame, area: Rect, app: &mut App) {
@@ -56,15 +57,14 @@ fn render_left(frame: &mut Frame, area: Rect, app: &mut App) {
 fn render_right(frame: &mut Frame, area: Rect, app: &mut App) {
     let chat_area = Rect { x: area.x + 1, y: area.y, width: area.width.saturating_sub(1), height: area.height };
     
-    // Header, Messages, Input, Separator, Status
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(2),  // Header
-            Constraint::Min(1),     // Messages
-            Constraint::Length(3),  // Input
-            Constraint::Length(1),  // Separator
-            Constraint::Length(1),  // Status
+            Constraint::Length(2),
+            Constraint::Min(1),
+            Constraint::Length(3),
+            Constraint::Length(1),
+            Constraint::Length(1),
         ])
         .split(chat_area);
     
@@ -74,7 +74,6 @@ fn render_right(frame: &mut Frame, area: Rect, app: &mut App) {
     chat::render_messages(frame, rows[1], app);
     input::render(frame, rows[2], app);
     
-    // Separator line
     let sep = "─".repeat(rows[3].width as usize);
     frame.render_widget(
         Paragraph::new(Line::from(Span::styled(sep, Style::default().fg(colors::BORDER))))

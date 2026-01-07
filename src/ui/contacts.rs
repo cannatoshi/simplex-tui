@@ -25,7 +25,6 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
     let w = area.width as usize;
     let sep: String = "─".repeat(w);
     
-    // Header
     lines.push(Line::from(Span::styled(
         " Contacts",
         Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD)
@@ -36,6 +35,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
         lines.push(Line::from(""));
         lines.push(Line::from(Span::styled("  No contacts", Style::default().fg(colors::TEXT_DIM))));
         lines.push(Line::from(Span::styled("  Press [i] to add", Style::default().fg(colors::TEXT_DIM))));
+        lines.push(Line::from(Span::styled("  Double-click for options", Style::default().fg(colors::TEXT_DIM))));
     } else {
         for (i, contact) in app.contacts.iter().enumerate() {
             let selected = app.contact_state.selected() == Some(i);
@@ -53,7 +53,6 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 Style::default().fg(colors::TEXT)
             };
             
-            // Build spans
             let mut spans = vec![
                 Span::styled(marker.to_string(), Style::default().fg(marker_color).bg(bg)),
                 Span::styled("[".to_string(), Style::default().fg(avatar_color).bg(bg)),
@@ -62,7 +61,6 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 Span::styled(contact.name.clone(), name_style.bg(bg)),
             ];
             
-            // Add unread badge if > 0
             let unread_text = if contact.unread > 0 {
                 format!(" ({})", contact.unread)
             } else {
@@ -76,7 +74,6 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 ));
             }
             
-            // Padding to fill row
             let used_len = marker.len() + 1 + initials.len() + 2 + contact.name.len() + unread_text.len();
             let remaining = w.saturating_sub(used_len);
             spans.push(Span::styled(" ".repeat(remaining), Style::default().bg(bg)));
@@ -89,14 +86,13 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
     frame.render_widget(Paragraph::new(lines), area);
 }
 
-/// Render the action bar
 pub fn render_actions(frame: &mut Frame, area: Rect) {
     if area.height < 2 { return; }
     
     let w = area.width as usize;
     let sep: String = "─".repeat(w);
     
-    let content = "[i]Add  [r]Rfsh  [?]Help";
+    let content = "[i]Add  [o]Opts  [r]Rfsh  [?]Help";
     let pad = w.saturating_sub(content.len()) / 2;
     let padding: String = " ".repeat(pad);
     
@@ -107,6 +103,9 @@ pub fn render_actions(frame: &mut Frame, area: Rect) {
             Span::styled("[", Style::default().fg(colors::TEXT_DIM)),
             Span::styled("i", Style::default().fg(colors::BLUE)),
             Span::styled("]Add  ", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled("[", Style::default().fg(colors::TEXT_DIM)),
+            Span::styled("o", Style::default().fg(colors::BLUE)),
+            Span::styled("]Opts  ", Style::default().fg(colors::TEXT_DIM)),
             Span::styled("[", Style::default().fg(colors::TEXT_DIM)),
             Span::styled("r", Style::default().fg(colors::BLUE)),
             Span::styled("]Rfsh  ", Style::default().fg(colors::TEXT_DIM)),

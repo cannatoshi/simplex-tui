@@ -9,7 +9,7 @@ mod contacts;
 mod chat;
 mod input;
 mod status;
-pub mod modals;  // PUBLIC for button positions
+pub mod modals;
 
 pub fn render(frame: &mut ratatui::Frame, app: &mut crate::app::App) {
     layout::render(frame, app);

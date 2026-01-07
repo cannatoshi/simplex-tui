@@ -9,8 +9,8 @@ use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyModifiers, MouseEventKind, MouseButton};
 
 use crate::app::App;
-use crate::types::{Mode, Panel};
-use crate::ui::modals::{BUTTON_REFRESH, BUTTON_CREATE, BUTTON_CLOSE};
+use crate::types::{Mode, Panel, ContactOption};
+use crate::ui::modals::{BUTTON_REFRESH, BUTTON_CREATE, BUTTON_CLOSE, CONTACT_OPTION_BUTTONS};
 
 pub fn handle_events(app: &mut App) -> Result<()> {
     if !event::poll(Duration::from_millis(50))? { return Ok(()); }
@@ -30,6 +30,19 @@ fn handle_mouse(app: &mut App, mouse: event::MouseEvent) {
     match mouse.kind {
         MouseEventKind::Down(MouseButton::Left) => {
             match app.mode {
+                Mode::ContactOptions => {
+                    unsafe {
+                        for (i, btn_opt) in CONTACT_OPTION_BUTTONS.iter().enumerate() {
+                            if let Some(btn) = btn_opt {
+                                if x >= btn.x && x < btn.x + btn.width && y >= btn.y && y < btn.y + btn.height {
+                                    app.option_selection = i;
+                                    app.execute_selected_option();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
                 Mode::AddContact => {
                     unsafe {
                         if let Some(btn) = BUTTON_REFRESH {
@@ -75,8 +88,13 @@ fn handle_mouse(app: &mut App, mouse: event::MouseEvent) {
                         if y > 2 && y < term_height - 3 {
                             let idx = ((y - 3) / 2) as usize;
                             if idx < app.contacts.len() {
-                                app.contact_state.select(Some(idx));
-                                app.select_contact();
+                                if app.check_double_click(idx) {
+                                    let contact_name = app.contacts[idx].name.clone();
+                                    app.open_contact_options(contact_name);
+                                } else {
+                                    app.contact_state.select(Some(idx));
+                                    app.select_contact();
+                                }
                             }
                         }
                     }
@@ -115,6 +133,7 @@ fn handle_key(app: &mut App, code: KeyCode, mods: KeyModifiers) {
     match app.mode {
         Mode::Panic => handle_panic(app, code),
         Mode::AddContact => handle_add_contact(app, code),
+        Mode::ContactOptions => handle_contact_options(app, code),
         Mode::Normal => handle_normal(app, code),
         Mode::Input => handle_input(app, code),
     }
@@ -137,8 +156,6 @@ fn handle_add_contact(app: &mut App, code: KeyCode) {
             app.mode = Mode::Normal;
             app.connect_input.clear();
         }
-        KeyCode::Char('g') => app.request_address(),
-        KeyCode::Char('c') => app.create_address(),
         KeyCode::Enter => {
             if !app.connect_input.is_empty() {
                 app.connect_to_invite();
@@ -146,9 +163,56 @@ fn handle_add_contact(app: &mut App, code: KeyCode) {
         }
         KeyCode::Backspace => { app.connect_input.pop(); }
         KeyCode::Char(c) => {
+            if app.connect_input.is_empty() {
+                match c {
+                    'g' => { app.request_address(); return; }
+                    'c' => { app.create_address(); return; }
+                    _ => {}
+                }
+            }
             if !c.is_control() {
                 app.connect_input.push(c);
             }
+        }
+        _ => {}
+    }
+}
+
+fn handle_contact_options(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Esc => {
+            if app.confirm_action.is_some() {
+                app.confirm_action = None;
+                app.status = "Action cancelled".into();
+            } else {
+                app.close_contact_options();
+            }
+        }
+        KeyCode::Up | KeyCode::Char('k') => {
+            app.confirm_action = None;
+            app.prev_option();
+        }
+        KeyCode::Down | KeyCode::Char('j') => {
+            app.confirm_action = None;
+            app.next_option();
+        }
+        KeyCode::Enter => {
+            app.execute_selected_option();
+        }
+        KeyCode::Char('d') => {
+            app.option_selection = 0;
+            app.execute_selected_option();
+        }
+        KeyCode::Char('c') if app.confirm_action.is_none() => {
+            app.option_selection = 1;
+            app.execute_selected_option();
+        }
+        KeyCode::Char('i') => {
+            app.option_selection = 2;
+            app.execute_selected_option();
+        }
+        KeyCode::Char('x') => {
+            app.close_contact_options();
         }
         _ => {}
     }
@@ -164,12 +228,17 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         KeyCode::Tab => app.cycle_panel(),
         KeyCode::Char('i') => {
             app.mode = Mode::AddContact;
-            // Always request address when opening modal
             app.request_address();
         }
         KeyCode::Char('r') => {
             app.refresh_chat();
             app.send_cmd("/contacts");
+        }
+        KeyCode::Char('o') => {
+            if let Some(contact) = app.selected_contact() {
+                let name = contact.name.clone();
+                app.open_contact_options(name);
+            }
         }
         KeyCode::Char('j') | KeyCode::Down => {
             match app.panel {

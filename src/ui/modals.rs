@@ -14,11 +14,12 @@ use ratatui::{
 
 use crate::app::App;
 use crate::colors;
+use crate::types::ContactOption;
 
-// Button positions for mouse clicks
 pub static mut BUTTON_REFRESH: Option<Rect> = None;
 pub static mut BUTTON_CREATE: Option<Rect> = None;
 pub static mut BUTTON_CLOSE: Option<Rect> = None;
+pub static mut CONTACT_OPTION_BUTTONS: [Option<Rect>; 4] = [None; 4];
 
 pub fn render_help(frame: &mut Frame) {
     let area = frame.area();
@@ -45,6 +46,7 @@ pub fn render_help(frame: &mut Frame) {
         Line::from(Span::styled(" Actions", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))),
         Line::from(""),
         kl("i", "Add contact"),
+        kl("o", "Contact options (or double-click)"),
         kl("r", "Refresh contacts & chat"),
         kl("?", "Toggle this help"),
         kl("q", "Quit application"),
@@ -136,7 +138,6 @@ pub fn render_add_contact(frame: &mut Frame, app: &App) {
     lines.push(Line::from(Span::styled(" Connect to someone:", Style::default().fg(colors::TEXT).add_modifier(Modifier::BOLD))));
     lines.push(Line::from(""));
     
-    // Input field
     let input_w = (inner.width as usize).saturating_sub(4);
     let top = format!(" ┌{}┐", "─".repeat(input_w));
     let bot = format!(" └{}┘", "─".repeat(input_w));
@@ -172,7 +173,6 @@ pub fn render_add_contact(frame: &mut Frame, app: &App) {
     lines.push(Line::from(Span::styled(" Press [Enter] to connect", Style::default().fg(colors::TEXT_DIM))));
     lines.push(Line::from(""));
     
-    // Store button Y position
     let button_y = inner.y + lines.len() as u16;
     
     unsafe {
@@ -181,7 +181,6 @@ pub fn render_add_contact(frame: &mut Frame, app: &App) {
         BUTTON_CLOSE = Some(Rect { x: inner.x + 36, y: button_y, width: 14, height: 3 });
     }
     
-    // Buttons - symmetrisch
     lines.push(Line::from(Span::styled(
         " ┌────────────┐  ┌──────────────┐  ┌────────────┐".to_string(),
         Style::default().fg(colors::BLUE)
@@ -193,6 +192,132 @@ pub fn render_add_contact(frame: &mut Frame, app: &App) {
     lines.push(Line::from(Span::styled(
         " └────────────┘  └──────────────┘  └────────────┘".to_string(),
         Style::default().fg(colors::BLUE)
+    )));
+    
+    frame.render_widget(Paragraph::new(lines), inner);
+}
+
+pub fn render_contact_options(frame: &mut Frame, app: &App) {
+    let area = frame.area();
+    frame.render_widget(Clear, area);
+    
+    let contact_name = app.contact_for_options.as_deref().unwrap_or("Unknown");
+    let title = format!(" Contact: {} ", contact_name);
+    
+    let avatar_color = colors::avatar_color(contact_name);
+    
+    let block = Block::default()
+        .title(Span::styled(title, Style::default().fg(avatar_color).add_modifier(Modifier::BOLD)))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(avatar_color))
+        .style(Style::default().bg(colors::BG));
+    
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+    
+    let mut lines = vec![
+        Line::from(""),
+        Line::from(Span::styled(" Contact Options", Style::default().fg(colors::TEXT).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+    ];
+    
+    let initials = colors::get_initials(contact_name);
+    lines.push(Line::from(vec![
+        Span::styled("    [", Style::default().fg(avatar_color)),
+        Span::styled(&initials, Style::default().fg(avatar_color).add_modifier(Modifier::BOLD)),
+        Span::styled("] ", Style::default().fg(avatar_color)),
+        Span::styled(contact_name, Style::default().fg(colors::TEXT).add_modifier(Modifier::BOLD)),
+    ]));
+    lines.push(Line::from(""));
+    
+    let sep: String = "─".repeat((inner.width as usize).saturating_sub(2));
+    lines.push(Line::from(Span::styled(format!(" {}", sep), Style::default().fg(colors::BORDER))));
+    lines.push(Line::from(""));
+    
+    if let Some(action) = &app.confirm_action {
+        let warning_color = if (app.tick / 4) % 2 == 0 { colors::DANGER } else { colors::WARNING };
+        lines.push(Line::from(Span::styled(
+            format!(" ⚠ Confirm: {} ?", action.label()),
+            Style::default().fg(warning_color).add_modifier(Modifier::BOLD)
+        )));
+        lines.push(Line::from(Span::styled(
+            " Press [Enter] again to confirm, [Esc] to cancel",
+            Style::default().fg(colors::TEXT_DIM)
+        )));
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(format!(" {}", sep), Style::default().fg(colors::BORDER))));
+        lines.push(Line::from(""));
+    }
+    
+    let button_start_y = inner.y + lines.len() as u16;
+    
+    let options = ContactOption::all();
+    for (i, option) in options.iter().enumerate() {
+        let is_selected = i == app.option_selection;
+        let is_destructive = option.is_destructive();
+        
+        let btn_y = button_start_y + (i as u16 * 3);
+        unsafe {
+            CONTACT_OPTION_BUTTONS[i] = Some(Rect { 
+                x: inner.x + 2, 
+                y: btn_y, 
+                width: 40, 
+                height: 3 
+            });
+        }
+        
+        let (border_color, text_color, marker) = if is_selected {
+            if is_destructive {
+                (colors::DANGER, colors::DANGER, "▸")
+            } else {
+                (colors::BLUE, colors::BLUE, "▸")
+            }
+        } else {
+            if is_destructive {
+                (colors::TEXT_DIM, colors::DANGER, " ")
+            } else {
+                (colors::TEXT_DIM, colors::TEXT, " ")
+            }
+        };
+        
+        let key_char = option.key();
+        let label = option.label();
+        
+        lines.push(Line::from(vec![
+            Span::styled(format!("  {}┌", marker), Style::default().fg(border_color)),
+            Span::styled("─".repeat(36), Style::default().fg(border_color)),
+            Span::styled("┐", Style::default().fg(border_color)),
+        ]));
+        
+        let content = format!("[{}] {}", key_char, label);
+        let padding = 36 - content.len();
+        lines.push(Line::from(vec![
+            Span::styled("   │ ", Style::default().fg(border_color)),
+            Span::styled(format!("[{}]", key_char), Style::default().fg(border_color)),
+            Span::styled(format!(" {}", label), Style::default().fg(text_color)),
+            Span::styled(" ".repeat(padding.saturating_sub(1)), Style::default()),
+            Span::styled("│", Style::default().fg(border_color)),
+        ]));
+        
+        lines.push(Line::from(vec![
+            Span::styled("   └", Style::default().fg(border_color)),
+            Span::styled("─".repeat(36), Style::default().fg(border_color)),
+            Span::styled("┘", Style::default().fg(border_color)),
+        ]));
+    }
+    
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        " Use ↑↓ or j/k to navigate, Enter to select",
+        Style::default().fg(colors::TEXT_DIM)
+    )));
+    lines.push(Line::from(Span::styled(
+        " Or press the key in brackets for quick access",
+        Style::default().fg(colors::TEXT_DIM)
+    )));
+    lines.push(Line::from(Span::styled(
+        " Double-click opens this menu",
+        Style::default().fg(colors::TEXT_DIM)
     )));
     
     frame.render_widget(Paragraph::new(lines), inner);

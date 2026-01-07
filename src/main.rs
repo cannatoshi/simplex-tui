@@ -144,18 +144,30 @@ fn handle_simplex_event(app: &mut App, event: SimplexEvent) {
         }
         
         SimplexEvent::AddressDeleted => {
-            // Now create the new address
             app.finish_create_address();
         }
         
         SimplexEvent::AddressCreated => {
-            // New address created - refresh to get it
             app.send_cmd("/sa");
         }
         
         SimplexEvent::ContactRequest(name) => {
             app.status = format!("✓ Connected: {}", name);
             app.send_cmd("/contacts");
+        }
+        
+        SimplexEvent::ContactDeleted(name) => {
+            app.on_contact_deleted(&name);
+            app.send_cmd("/contacts");
+        }
+        
+        SimplexEvent::ChatCleared(name) => {
+            app.on_chat_cleared(&name);
+        }
+        
+        SimplexEvent::ContactInfo { name, info } => {
+            app.status = format!("{}: {}", name, info.lines().next().unwrap_or("No info"));
+            app.close_contact_options();
         }
         
         SimplexEvent::Error(err) => {
