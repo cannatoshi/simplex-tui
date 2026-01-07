@@ -124,7 +124,7 @@ impl App {
             }
             
             self.status = format!("Opening {}...", name);
-            self.send_cmd(&format!("/tail @{} 50", name));
+            self.send_cmd(&format!("/tail @'{}' 50", name));
         }
     }
     
@@ -251,7 +251,7 @@ impl App {
     
     pub fn refresh_chat(&self) {
         if let Some(name) = &self.current_contact {
-            self.send_cmd(&format!("/tail @{} 50", name));
+            self.send_cmd(&format!("/tail @'{}' 50", name));
         }
     }
     
@@ -259,7 +259,7 @@ impl App {
         if self.input.is_empty() { return; }
         
         if let Some(contact) = self.selected_contact() {
-            let cmd = format!("@{} {}", contact.name, self.input);
+            let cmd = format!("@'{}' {}", contact.name, self.input);
             self.send_cmd(&cmd);
             
             self.messages.push(ChatMessage {
@@ -311,13 +311,13 @@ impl App {
     pub fn scroll_up(&mut self) { self.scroll = self.scroll.saturating_sub(1); }
     pub fn scroll_down(&mut self) { self.scroll = self.scroll.saturating_add(1); }
     
-    pub fn input_char(&mut self, c: char) { self.input.insert(self.cursor, c); self.cursor += 1; }
-    pub fn input_backspace(&mut self) { if self.cursor > 0 { self.cursor -= 1; self.input.remove(self.cursor); } }
-    pub fn input_delete(&mut self) { if self.cursor < self.input.len() { self.input.remove(self.cursor); } }
+    pub fn input_char(&mut self, c: char) { let mut chars: Vec<char> = self.input.chars().collect(); chars.insert(self.cursor, c); self.input = chars.into_iter().collect(); self.cursor += 1; }
+    pub fn input_backspace(&mut self) { if self.cursor > 0 { self.cursor -= 1; let mut chars: Vec<char> = self.input.chars().collect(); chars.remove(self.cursor); self.input = chars.into_iter().collect(); } }
+    pub fn input_delete(&mut self) { let len = self.input.chars().count(); if self.cursor < len { let mut chars: Vec<char> = self.input.chars().collect(); chars.remove(self.cursor); self.input = chars.into_iter().collect(); } }
     pub fn cursor_left(&mut self) { self.cursor = self.cursor.saturating_sub(1); }
-    pub fn cursor_right(&mut self) { if self.cursor < self.input.len() { self.cursor += 1; } }
+    pub fn cursor_right(&mut self) { if self.cursor < self.input.chars().count() { self.cursor += 1; } }
     pub fn cursor_home(&mut self) { self.cursor = 0; }
-    pub fn cursor_end(&mut self) { self.cursor = self.input.len(); }
+    pub fn cursor_end(&mut self) { self.cursor = self.input.chars().count(); }
     pub fn tick(&mut self) { self.tick = self.tick.wrapping_add(1); }
 }
 

@@ -30,7 +30,8 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
         Line::from(Span::styled(" Type a message...", Style::default().fg(colors::TEXT_DIM)))
     } else {
         let cursor_on = active && (app.tick / 5) % 2 == 0;
-        let (before, after) = app.input.split_at(app.cursor.min(app.input.len()));
+        let before: String = app.input.chars().take(app.cursor).collect();
+        let after: String = app.input.chars().skip(app.cursor).collect();
         let mut spans = vec![Span::styled(" ", Style::default()), Span::styled(before, Style::default().fg(colors::TEXT))];
         if cursor_on { spans.push(Span::styled("▌", Style::default().fg(colors::BLUE).add_modifier(Modifier::BOLD))); }
         spans.push(Span::styled(after, Style::default().fg(colors::TEXT)));
