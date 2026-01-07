@@ -23,38 +23,47 @@ pub fn spawn(
 }
 
 async fn run_websocket(event_tx: mpsc::Sender<SimplexEvent>, cmd_rx: mpsc::Receiver<String>) {
-    match connect_async("ws://127.0.0.1:5225").await {
-        Ok((ws, _)) => {
-            let _ = event_tx.send(SimplexEvent::Connected);
-            let (mut write, mut read) = ws.split();
-            
-            // Load contacts AND address at startup
-            let cmd1 = ApiCommand::with_id("init", "/contacts");
-            let _ = write.send(Message::Text(serde_json::to_string(&cmd1).unwrap().into())).await;
-            
-            let cmd2 = ApiCommand::with_id("addr", "/sa");
-            let _ = write.send(Message::Text(serde_json::to_string(&cmd2).unwrap().into())).await;
-            
-            tokio::spawn(async move {
-                loop {
-                    if let Ok(cmd) = cmd_rx.try_recv() {
-                        let api = ApiCommand::new(&cmd);
-                        let _ = write.send(Message::Text(serde_json::to_string(&api).unwrap().into())).await;
+    loop {
+        match connect_async("ws://127.0.0.1:5225").await {
+            Ok((ws, _)) => {
+                let _ = event_tx.send(SimplexEvent::Connected);
+                let (mut write, mut read) = ws.split();
+                
+                // Load contacts AND address at startup
+                let cmd1 = ApiCommand::with_id("init", "/contacts");
+                let _ = write.send(Message::Text(serde_json::to_string(&cmd1).unwrap().into())).await;
+                
+                let cmd2 = ApiCommand::with_id("addr", "/sa");
+                let _ = write.send(Message::Text(serde_json::to_string(&cmd2).unwrap().into())).await;
+                
+                let event_tx_clone = event_tx.clone();
+                let write = std::sync::Arc::new(tokio::sync::Mutex::new(write));
+                let write_clone = write.clone();
+                
+                tokio::spawn(async move {
+                    loop {
+                        // Check for commands every 50ms
+                        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
                     }
-                    tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-                }
-            });
-            
-            while let Some(Ok(msg)) = read.next().await {
-                if let Message::Text(txt) = msg {
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&txt) {
-                        process_message(&json, &event_tx);
+                });
+                
+                // Handle incoming messages
+                while let Some(Ok(msg)) = read.next().await {
+                    if let Message::Text(txt) = msg {
+                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&txt) {
+                            process_message(&json, &event_tx_clone);
+                        }
                     }
                 }
+                let _ = event_tx.send(SimplexEvent::Disconnected);
             }
-            let _ = event_tx.send(SimplexEvent::Disconnected);
+            Err(_) => {
+                let _ = event_tx.send(SimplexEvent::Disconnected);
+            }
         }
-        Err(e) => { let _ = event_tx.send(SimplexEvent::Error(format!("Connection: {}", e))); }
+        
+        // Wait before reconnect attempt
+        tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
     }
 }
 
