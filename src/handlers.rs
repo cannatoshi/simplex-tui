@@ -9,8 +9,7 @@ use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyModifiers, MouseEventKind, MouseButton};
 
 use crate::app::App;
-use crate::types::{Mode, Panel, ContactOption};
-use crate::ui::modals::{BUTTON_REFRESH, BUTTON_CREATE, BUTTON_CLOSE, CONTACT_OPTION_BUTTONS};
+use crate::types::{Mode, Panel};
 
 pub fn handle_events(app: &mut App) -> Result<()> {
     if !event::poll(Duration::from_millis(50))? { return Ok(()); }
@@ -31,8 +30,7 @@ fn handle_mouse(app: &mut App, mouse: event::MouseEvent) {
         MouseEventKind::Down(MouseButton::Left) => {
             match app.mode {
                 Mode::ContactOptions => {
-                    unsafe {
-                        for (i, btn_opt) in CONTACT_OPTION_BUTTONS.iter().enumerate() {
+                        for (i, btn_opt) in app.btn_contact_options.iter().enumerate() {
                             if let Some(btn) = btn_opt {
                                 if x >= btn.x && x < btn.x + btn.width && y >= btn.y && y < btn.y + btn.height {
                                     app.option_selection = i;
@@ -41,30 +39,27 @@ fn handle_mouse(app: &mut App, mouse: event::MouseEvent) {
                                 }
                             }
                         }
-                    }
                 }
                 Mode::AddContact => {
-                    unsafe {
-                        if let Some(btn) = BUTTON_REFRESH {
+                        if let Some(btn) = app.btn_refresh {
                             if x >= btn.x && x < btn.x + btn.width && y >= btn.y && y < btn.y + btn.height {
                                 app.request_address();
                                 return;
                             }
                         }
-                        if let Some(btn) = BUTTON_CREATE {
+                        if let Some(btn) = app.btn_create {
                             if x >= btn.x && x < btn.x + btn.width && y >= btn.y && y < btn.y + btn.height {
                                 app.create_address();
                                 return;
                             }
                         }
-                        if let Some(btn) = BUTTON_CLOSE {
+                        if let Some(btn) = app.btn_close {
                             if x >= btn.x && x < btn.x + btn.width && y >= btn.y && y < btn.y + btn.height {
                                 app.mode = Mode::Normal;
                                 app.connect_input.clear();
                                 return;
                             }
                         }
-                    }
                 }
                 Mode::Normal | Mode::Input => {
                     let term_height = crossterm::terminal::size().map(|(_, h)| h).unwrap_or(24);

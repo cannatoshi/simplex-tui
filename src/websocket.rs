@@ -264,6 +264,23 @@ fn process_message(json: &serde_json::Value, event_tx: &mpsc::Sender<SimplexEven
             };
             let _ = event_tx.send(SimplexEvent::ContactInfo(info_data));
         }
+        "contactDeleted" => {
+            let name = resp.get("contact")
+                .and_then(|c| c.get("localDisplayName"))
+                .and_then(|n| n.as_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            let _ = event_tx.send(SimplexEvent::ContactDeleted(name));
+        }
+        "chatCleared" => {
+            let name = resp.get("chatInfo")
+                .and_then(|ci| ci.get("contact"))
+                .and_then(|c| c.get("localDisplayName"))
+                .and_then(|n| n.as_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            let _ = event_tx.send(SimplexEvent::ChatCleared(name));
+        }
         _ => {}
     }
 }

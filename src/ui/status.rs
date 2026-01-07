@@ -22,7 +22,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
     
     let footer_text = get_footer_text(app.tick);
     
-    let left = format!(" {} {} │ {}", dot, conn_txt, app.status);
+    let _left = format!(" {} {} │ {}", dot, conn_txt, app.status);
     let left_len = 3 + conn_txt.len() + 3 + app.status.len();
     
     let right_len = footer_text.len() + 2;

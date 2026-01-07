@@ -89,7 +89,7 @@ fn handle_simplex_event(app: &mut App, event: SimplexEvent) {
         }
         
         SimplexEvent::Messages(messages) => {
-            let count = messages.len();
+            let _count = messages.len();
             app.messages = messages;
             app.auto_scroll();
             

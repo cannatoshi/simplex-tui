@@ -16,10 +16,6 @@ use crate::app::App;
 use crate::colors;
 use crate::types::ContactOption;
 
-pub static mut BUTTON_REFRESH: Option<Rect> = None;
-pub static mut BUTTON_CREATE: Option<Rect> = None;
-pub static mut BUTTON_CLOSE: Option<Rect> = None;
-pub static mut CONTACT_OPTION_BUTTONS: [Option<Rect>; 4] = [None; 4];
 
 pub fn render_help(frame: &mut Frame) {
     let area = frame.area();
@@ -97,7 +93,7 @@ pub fn render_panic(frame: &mut Frame, app: &App) {
     frame.render_widget(Paragraph::new(lines), inner);
 }
 
-pub fn render_add_contact(frame: &mut Frame, app: &App) {
+pub fn render_add_contact(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
     frame.render_widget(Clear, area);
     
@@ -175,11 +171,10 @@ pub fn render_add_contact(frame: &mut Frame, app: &App) {
     
     let button_y = inner.y + lines.len() as u16;
     
-    unsafe {
-        BUTTON_REFRESH = Some(Rect { x: inner.x + 2, y: button_y, width: 14, height: 3 });
-        BUTTON_CREATE = Some(Rect { x: inner.x + 18, y: button_y, width: 16, height: 3 });
-        BUTTON_CLOSE = Some(Rect { x: inner.x + 36, y: button_y, width: 14, height: 3 });
-    }
+    
+        app.btn_refresh = Some(Rect { x: inner.x + 2, y: button_y, width: 14, height: 3 });
+        app.btn_create = Some(Rect { x: inner.x + 18, y: button_y, width: 16, height: 3 });
+        app.btn_close = Some(Rect { x: inner.x + 36, y: button_y, width: 14, height: 3 });
     
     lines.push(Line::from(Span::styled(
         " ┌────────────┐  ┌──────────────┐  ┌────────────┐".to_string(),
@@ -197,7 +192,7 @@ pub fn render_add_contact(frame: &mut Frame, app: &App) {
     frame.render_widget(Paragraph::new(lines), inner);
 }
 
-pub fn render_contact_options(frame: &mut Frame, app: &App) {
+pub fn render_contact_options(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
     frame.render_widget(Clear, area);
     
@@ -257,14 +252,13 @@ pub fn render_contact_options(frame: &mut Frame, app: &App) {
         let is_destructive = option.is_destructive();
         
         let btn_y = button_start_y + (i as u16 * 3);
-        unsafe {
-            CONTACT_OPTION_BUTTONS[i] = Some(Rect { 
+        
+            app.btn_contact_options[i] = Some(Rect { 
                 x: inner.x + 2, 
                 y: btn_y, 
                 width: 40, 
                 height: 3 
             });
-        }
         
         let (border_color, text_color, marker) = if is_selected {
             if is_destructive {
@@ -345,7 +339,7 @@ fn po(k: &str, n: &str, d: &str, c: ratatui::style::Color) -> Line<'static> {
     ])
 }
 
-pub fn render_contact_info(frame: &mut Frame, app: &App) {
+pub fn render_contact_info(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
     frame.render_widget(Clear, area);
     

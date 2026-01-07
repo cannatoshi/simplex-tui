@@ -37,6 +37,10 @@ pub struct App {
     
     pub contact_for_options: Option<String>,
     pub contact_info_data: Option<crate::types::ContactInfoData>,
+    pub btn_refresh: Option<ratatui::layout::Rect>,
+    pub btn_create: Option<ratatui::layout::Rect>,
+    pub btn_close: Option<ratatui::layout::Rect>,
+    pub btn_contact_options: [Option<ratatui::layout::Rect>; 4],
     pub option_selection: usize,
     pub confirm_action: Option<ContactOption>,
     
@@ -73,6 +77,10 @@ impl App {
             
             contact_for_options: None,
             contact_info_data: None,
+            btn_refresh: None,
+            btn_create: None,
+            btn_close: None,
+            btn_contact_options: [None; 4],
             option_selection: 0,
             confirm_action: None,
             
