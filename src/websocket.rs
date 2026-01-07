@@ -36,25 +36,31 @@ async fn run_websocket(event_tx: mpsc::Sender<SimplexEvent>, cmd_rx: mpsc::Recei
                 let cmd2 = ApiCommand::with_id("addr", "/sa");
                 let _ = write.send(Message::Text(serde_json::to_string(&cmd2).unwrap().into())).await;
                 
-                let event_tx_clone = event_tx.clone();
-                let write = std::sync::Arc::new(tokio::sync::Mutex::new(write));
-                let write_clone = write.clone();
-                
-                tokio::spawn(async move {
-                    loop {
-                        // Check for commands every 50ms
-                        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-                    }
-                });
-                
-                // Handle incoming messages
-                while let Some(Ok(msg)) = read.next().await {
-                    if let Message::Text(txt) = msg {
-                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&txt) {
-                            process_message(&json, &event_tx_clone);
+                loop {
+                    // Check for commands to send
+                    while let Ok(cmd) = cmd_rx.try_recv() {
+                        let api = ApiCommand::new(&cmd);
+                        if write.send(Message::Text(serde_json::to_string(&api).unwrap().into())).await.is_err() {
+                            break;
                         }
                     }
+                    
+                    // Check for incoming messages with timeout
+                    match tokio::time::timeout(
+                        tokio::time::Duration::from_millis(50),
+                        read.next()
+                    ).await {
+                        Ok(Some(Ok(Message::Text(txt)))) => {
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&txt) {
+                                process_message(&json, &event_tx);
+                            }
+                        }
+                        Ok(Some(Err(_))) | Ok(None) => break, // Connection closed
+                        Ok(Some(Ok(_))) => {} // Other message types
+                        Err(_) => {} // Timeout, continue loop
+                    }
                 }
+                
                 let _ = event_tx.send(SimplexEvent::Disconnected);
             }
             Err(_) => {
@@ -327,6 +333,7 @@ fn get_item_status(chat_item: Option<&serde_json::Value>) -> MessageStatus {
         "sndSent" => MessageStatus::Sent,
         "sndRcvd" | "sndDelivered" => MessageStatus::Delivered,
         "sndRead" => MessageStatus::Read,
+        "sndError" | "sndFailed" | "sndErrorAuth" => MessageStatus::Failed,
         _ => MessageStatus::Sent,
     }
 }

@@ -70,7 +70,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
             if contact.unread > 0 {
                 spans.push(Span::styled(
                     unread_text.clone(),
-                    Style::default().fg(colors::WARNING).add_modifier(Modifier::BOLD).bg(bg)
+                    Style::default().fg(colors::UNREAD).add_modifier(Modifier::BOLD).bg(bg)
                 ));
             }
             

@@ -10,12 +10,11 @@ use serde::Serialize;
 pub struct Contact {
     pub name: String,
     pub unread: usize,
-    pub online: bool,
 }
 
 impl Contact {
     pub fn new(name: String) -> Self {
-        Self { name, unread: 0, online: false }
+        Self { name, unread: 0 }
     }
 }
 
